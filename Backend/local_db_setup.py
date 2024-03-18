@@ -117,3 +117,7 @@ Session = sessionmaker(bind=engine)
 session= Session()
 
 session.close()
+
+# TO DO:
+    # add items into table and make sure triggers work
+    # split whole file into organized classes
