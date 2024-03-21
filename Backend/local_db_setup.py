@@ -85,16 +85,6 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session= Session()
 
-tb = LCCDE(duration = '00:01:11', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
-session.add(tb)
-session.commit()
-tb = MTH(duration = '00:44:11', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
-session.add(tb)
-session.commit()
-tb = TreeBased(duration = '00:01:14', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
-session.add(tb)
-session.commit()
-
 session.close()
 
 # TO DO:
