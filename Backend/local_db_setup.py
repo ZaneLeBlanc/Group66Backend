@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy import event, DDL
 from sqlalchemy.dialects.mysql import FLOAT
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
 
@@ -52,69 +52,48 @@ class RunHistory(Base):
     duration = Column(Integer, nullable=False)
     run_date = Column(DateTime, default= datetime.datetime.utcnow)
 
-# Table for unique ids
-class Unique_ids(Base):
-    __tablename__ = 'Unique_ids'
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
 # -----TRIGGERS-----
     # maybe switch to @validate?
-
-# Insert into combined tables triggers
-insert_history_lccde = DDL('''\
-                           CREATE TRIGGER insert_history_lccde AFTER INSERT ON test_DB.lccde FOR EACH ROW
+@event.listens_for(Base.metadata, 'after_create')
+def make_triggers(target, connection, **kw):
+    t_ddls = [
+        DDL('''\
+                           CREATE TRIGGER lccde_insert_trigger AFTER INSERT ON lccde FOR EACH ROW
                            BEGIN
-                            INSERT INTO runhistory (run_id, duration, run_date)
-                            VALUES (new.run_id, new.duration, new.run_date);
-                           END;''')
-event.listen(LCCDE.__table__, 'after_create', insert_history_lccde)
-
-insert_history_treebased = DDL('''\
-                           CREATE TRIGGER insert_history_treebased AFTER INSERT ON test_DB.treebased FOR EACH ROW
+                            INSERT INTO runhistory (run_id, duration, run_date) VALUES (NULL,  new.duration, new.run_date);
+                            UPDATE lccde SET run_id = (SELECT last_insert_rowid()) WHERE rowid = NEW.rowid;
+                           END;'''),
+        DDL('''\
+                           CREATE TRIGGER treebased_insert_trigger AFTER INSERT ON treebased FOR EACH ROW
                            BEGIN
-                            INSERT INTO runhistory (run_id, duration, run_date)
-                            VALUES (new.run_id, new.duration, new.run_date);
-                           END;''')
-event.listen(TreeBased.__table__, 'after_create', insert_history_treebased)
-
-insert_history_mth = DDL('''\
-                           CREATE TRIGGER insert_history_mth AFTER INSERT ON test_DB.mth FOR EACH ROW
+                            INSERT INTO runhistory (run_id, duration, run_date) VALUES (NULL,  new.duration, new.run_date);
+                            UPDATE treebased SET run_id = (SELECT last_insert_rowid()) WHERE rowid = NEW.rowid;
+                           END;'''),
+        DDL('''\
+                           CREATE TRIGGER mth_insert_trigger AFTER INSERT ON mth FOR EACH ROW
                            BEGIN
-                            INSERT INTO runhistory (run_id, duration, run_date)
-                            VALUES (new.run_id, new.duration, new.run_date);
+                            INSERT INTO runhistory (run_id, duration, run_date) VALUES (NULL,  new.duration, new.run_date);
+                            UPDATE mth SET run_id = (SELECT last_insert_rowid()) WHERE rowid = NEW.rowid;
                            END;''')
-event.listen(MTH.__table__, 'after_create', insert_history_mth)
+    ]
 
-# unique id assignment
-lccde_insert_trigger = DDL('''\
-                           CREATE TRIGGER lccde_insert_trigger BEFORE INSERT ON lccde FOR EACH ROW
-                           BEGIN
-                            INSERT INTO unique_ids() VALUES ();
-                            SET NEW.run_id = LAST_INSERT_ID();
-                           END;''')
-event.listen(LCCDE.__table__, 'after_create', lccde_insert_trigger)
-
-treebased_insert_trigger = DDL('''\
-                           CREATE TRIGGER treebased_insert_trigger BEFORE INSERT ON treebased FOR EACH ROW
-                           BEGIN
-                            INSERT INTO unique_ids() VALUES ();
-                            SET NEW.run_id = LAST_INSERT_ID();
-                           END;''')
-event.listen(TreeBased.__table__, 'after_create', treebased_insert_trigger)
-
-mth_insert_trigger = DDL('''\
-                           CREATE TRIGGER mth_insert_trigger BEFORE INSERT ON mth FOR EACH ROW
-                           BEGIN
-                            INSERT INTO unique_ids() VALUES ();
-                            SET NEW.run_id = LAST_INSERT_ID();
-                           END;''')
-event.listen(MTH.__table__, 'after_create', mth_insert_trigger)
+    for ddl in t_ddls:
+        connection.execute(ddl)
 
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session= Session()
+
+tb = LCCDE(duration = '00:01:11', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
+session.add(tb)
+session.commit()
+tb = MTH(duration = '00:44:11', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
+session.add(tb)
+session.commit()
+tb = TreeBased(duration = '00:01:14', accuracy='0.222222', prec='0.444444' ,recall='0.555555', f1_score='0.999999' )
+session.add(tb)
+session.commit()
 
 session.close()
 
