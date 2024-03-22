@@ -12,10 +12,12 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import axios from 'axios';
+import LCCDEResult from './Components/LCCDEResult.tsx'
+import PreviousRunCard from './Components/PreviousRunCard.tsx';
 
 function App() {
   {/* React variables */}
-  const [pythonCode, setPythonCode] = useState('bruh');
+  const [pythonCode, setPythonCode] = useState('test');
   const [result, setResult] = useState('');
 
   {/* This function runs whenever the echo button is clicked,
@@ -42,8 +44,10 @@ function App() {
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
+      <LCCDEResult />
 
       <h1>ML Intrusion Detection Tool</h1>
+      <PreviousRunCard />
         
       <div className="testSection">
         <textarea value={pythonCode} onChange={(e) => setPythonCode(e.target.value)} />
