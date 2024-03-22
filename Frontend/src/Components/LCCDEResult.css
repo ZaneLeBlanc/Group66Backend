@@ -1,0 +1,10 @@
+.resultItems {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    
+}
+
+.textItem {
+    margin: 0;
+}
