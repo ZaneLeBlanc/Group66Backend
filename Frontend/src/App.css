@@ -1,8 +1,4 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
 }
 
 .logo {
@@ -44,4 +40,27 @@
 .testSection {
   display: flex;
   flex-direction: column;
+}
+
+.header {
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left:0;
+  padding: 10px;
+  background-color: #e3e3e3;
+  height: 5em;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.items {
+  display: flex;
+
+}
+
+.items h3 {
+  padding-right: 30px;
 }

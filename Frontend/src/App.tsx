@@ -36,18 +36,13 @@ function App() {
   {/* App itself */}
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <LCCDEResult />
-
-      <h1>ML Intrusion Detection Tool</h1>
-      <PreviousRunCard />
+      <header className="header">
+        <h1>ML Intrusion Detection Tool</h1>
+        <div className="items">
+          <h3>Test</h3>
+          <h3>Previous Runs</h3>
+        </div>
+      </header>
         
       <div className="testSection">
         <textarea value={pythonCode} onChange={(e) => setPythonCode(e.target.value)} />
