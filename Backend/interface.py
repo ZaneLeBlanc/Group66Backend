@@ -3,6 +3,10 @@
 # 'pip install flask'
 # 'pip install flask-cors'
 
+# Aaron (3/23)
+# This file will serve as a medium for requests to travel from fe -> be/db
+# modifying currently called functions should be done with care
+
 # to start it up you do 
 # 'python <filename>.py'
 
@@ -18,6 +22,7 @@ def run_python_code():
     result = "Python received: [" + (code) + ']'
     return jsonify({'result': result})
 
+# fe will hit one of these endpoints with a populated jsonm which will include params and the like
 @app.route('/lccde', methods=['POST'])
 def alg1():
     pass
