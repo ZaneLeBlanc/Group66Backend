@@ -28,156 +28,164 @@ import time
 from river import stream
 from statistics import mode
 
-# %% [markdown]
-# ## Read the sampled CICIDS2017 dataset
-# The CICIDS2017 dataset is publicly available at: https://www.unb.ca/cic/datasets/ids-2017.html  
-# Due to the large size of this dataset, the sampled subsets of CICIDS2017 is used. The subsets are in the "data" folder.  
-# If you want to use this code on other datasets (e.g., CAN-intrusion dataset), just change the dataset name and follow the same steps. The models in this code are generic models that can be used in any intrusion detection/network traffic datasets.
+def data_prep(data_path):
+    # %% [markdown]
+    # ## Read the sampled CICIDS2017 dataset
+    # The CICIDS2017 dataset is publicly available at: https://www.unb.ca/cic/datasets/ids-2017.html  
+    # Due to the large size of this dataset, the sampled subsets of CICIDS2017 is used. The subsets are in the "data" folder.  
+    # If you want to use this code on other datasets (e.g., CAN-intrusion dataset), just change the dataset name and follow the same steps. The models in this code are generic models that can be used in any intrusion detection/network traffic datasets.
 
-# %%
-df = pd.read_csv("./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv")
+    # %%
+    # "./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv"
+    df = pd.read_csv(data_path)
 
-# %%
-df.Label.value_counts()
+    # %%
+    df.Label.value_counts()
 
-# %% [markdown]
-# **Corresponding Attack Types:**  
-# 0 BENIGN &emsp; 18225  
-# 3 DoS        &emsp;   &emsp;   3042  
-# 6 WebAttack    &emsp;      2180  
-# 1 Bot        &emsp;  &emsp;      1966    
-# 5 PortScan  &emsp;       1255  
-# 2 BruteForce  &emsp;      96  
-# 4 Infiltration  &emsp;       36  
+    # %% [markdown]
+    # **Corresponding Attack Types:**  
+    # 0 BENIGN &emsp; 18225  
+    # 3 DoS        &emsp;   &emsp;   3042  
+    # 6 WebAttack    &emsp;      2180  
+    # 1 Bot        &emsp;  &emsp;      1966    
+    # 5 PortScan  &emsp;       1255  
+    # 2 BruteForce  &emsp;      96  
+    # 4 Infiltration  &emsp;       36  
 
-# %% [markdown]
-# ## Split train set and test set
+    # %% [markdown]
+    # ## Split train set and test set
 
-# %%
-X = df.drop(['Label'],axis=1)
-y = df['Label']
-X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0) #shuffle=False
+    # %%
+    X = df.drop(['Label'],axis=1)
+    y = df['Label']
+    X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0) #shuffle=False
 
-# %% [markdown]
-# ## SMOTE to solve class-imbalance
+    # %% [markdown]
+    # ## SMOTE to solve class-imbalance
 
-# %%
-pd.Series(y_train).value_counts()
+    # %%
+    pd.Series(y_train).value_counts()
 
-# %%
-from imblearn.over_sampling import SMOTE
-smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
+    # %%
+    from imblearn.over_sampling import SMOTE
+    smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
 
-# %%
-X_train, y_train = smote.fit_resample(X_train, y_train)
+    # %%
+    X_train, y_train = smote.fit_resample(X_train, y_train)
 
-# %%
-pd.Series(y_train).value_counts()
+    # %%
+    pd.Series(y_train).value_counts()
+    return X_train, X_test, y_train, y_test
+    # %% [markdown]
+    # ## Machine Learning (ML) model training
+    # ### Training three base learners: LightGBM, XGBoost, CatBoost
+def train_base(X_train, X_test, y_train, y_test):
+    global lg
+    global xg
+    global cb
+    # %%
+    # %%time
+    global start_time
+    # Train the LightGBM algorithm
+    start_time = time.time()
+    import lightgbm as lgb
+    lg = lgb.LGBMClassifier()
+    lg.fit(X_train, y_train)
+    y_pred = lg.predict(X_test)
+    print(classification_report(y_test,y_pred))
+    print("Accuracy of LightGBM: "+ str(accuracy_score(y_test, y_pred)))
+    print("Precision of LightGBM: "+ str(precision_score(y_test, y_pred, average='weighted')))
+    print("Recall of LightGBM: "+ str(recall_score(y_test, y_pred, average='weighted')))
+    print("Average F1 of LightGBM: "+ str(f1_score(y_test, y_pred, average='weighted')))
+    print("F1 of LightGBM for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
+    lg_f1=f1_score(y_test, y_pred, average=None)
 
-# %% [markdown]
-# ## Machine Learning (ML) model training
-# ### Training three base learners: LightGBM, XGBoost, CatBoost
+    # Plot the confusion matrix
+    cm=confusion_matrix(y_test,y_pred)
+    f,ax=plt.subplots(figsize=(5,5))
+    sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+    plt.xlabel("y_pred")
+    plt.ylabel("y_true")
+    #plt.show() #dont need rn
 
-# %%
-# %%time
-start_time = time.time()
-# Train the LightGBM algorithm
-start_time = time.time()
-import lightgbm as lgb
-lg = lgb.LGBMClassifier()
-lg.fit(X_train, y_train)
-y_pred = lg.predict(X_test)
-print(classification_report(y_test,y_pred))
-print("Accuracy of LightGBM: "+ str(accuracy_score(y_test, y_pred)))
-print("Precision of LightGBM: "+ str(precision_score(y_test, y_pred, average='weighted')))
-print("Recall of LightGBM: "+ str(recall_score(y_test, y_pred, average='weighted')))
-print("Average F1 of LightGBM: "+ str(f1_score(y_test, y_pred, average='weighted')))
-print("F1 of LightGBM for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
-lg_f1=f1_score(y_test, y_pred, average=None)
+    # %%
+    # %%time
+    # Train the XGBoost algorithm
+    import xgboost as xgb
+    xg = xgb.XGBClassifier()
 
-# Plot the confusion matrix
-cm=confusion_matrix(y_test,y_pred)
-f,ax=plt.subplots(figsize=(5,5))
-sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
-plt.xlabel("y_pred")
-plt.ylabel("y_true")
-#plt.show() #dont need rn
+    X_train_x = X_train.values
+    X_test_x = X_test.values
 
-# %%
-# %%time
-# Train the XGBoost algorithm
-import xgboost as xgb
-xg = xgb.XGBClassifier()
+    xg.fit(X_train_x, y_train)
 
-X_train_x = X_train.values
-X_test_x = X_test.values
+    y_pred = xg.predict(X_test_x)
+    print(classification_report(y_test,y_pred))
+    print("Accuracy of XGBoost: "+ str(accuracy_score(y_test, y_pred)))
+    print("Precision of XGBoost: "+ str(precision_score(y_test, y_pred, average='weighted')))
+    print("Recall of XGBoost: "+ str(recall_score(y_test, y_pred, average='weighted')))
+    print("Average F1 of XGBoost: "+ str(f1_score(y_test, y_pred, average='weighted')))
+    print("F1 of XGBoost for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
+    xg_f1=f1_score(y_test, y_pred, average=None)
 
-xg.fit(X_train_x, y_train)
+    # Plot the confusion matrix
+    cm=confusion_matrix(y_test,y_pred)
+    f,ax=plt.subplots(figsize=(5,5))
+    sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+    plt.xlabel("y_pred")
+    plt.ylabel("y_true")
+    #plt.show() #dont need rn
 
-y_pred = xg.predict(X_test_x)
-print(classification_report(y_test,y_pred))
-print("Accuracy of XGBoost: "+ str(accuracy_score(y_test, y_pred)))
-print("Precision of XGBoost: "+ str(precision_score(y_test, y_pred, average='weighted')))
-print("Recall of XGBoost: "+ str(recall_score(y_test, y_pred, average='weighted')))
-print("Average F1 of XGBoost: "+ str(f1_score(y_test, y_pred, average='weighted')))
-print("F1 of XGBoost for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
-xg_f1=f1_score(y_test, y_pred, average=None)
+    # %%
+    # %%time
+    # Train the CatBoost algorithm
+    import catboost as cbt
+    cb = cbt.CatBoostClassifier(verbose=0,boosting_type='Plain')
+    #cb = cbt.CatBoostClassifier()
 
-# Plot the confusion matrix
-cm=confusion_matrix(y_test,y_pred)
-f,ax=plt.subplots(figsize=(5,5))
-sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
-plt.xlabel("y_pred")
-plt.ylabel("y_true")
-#plt.show() #dont need rn
+    cb.fit(X_train, y_train)
+    y_pred = cb.predict(X_test)
+    print(classification_report(y_test,y_pred))
+    print("Accuracy of CatBoost: "+ str(accuracy_score(y_test, y_pred)))
+    print("Precision of CatBoost: "+ str(precision_score(y_test, y_pred, average='weighted')))
+    print("Recall of CatBoost: "+ str(recall_score(y_test, y_pred, average='weighted')))
+    print("Average F1 of CatBoost: "+ str(f1_score(y_test, y_pred, average='weighted')))
+    print("F1 of CatBoost for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
+    cb_f1=f1_score(y_test, y_pred, average=None)
 
-# %%
-# %%time
-# Train the CatBoost algorithm
-import catboost as cbt
-cb = cbt.CatBoostClassifier(verbose=0,boosting_type='Plain')
-#cb = cbt.CatBoostClassifier()
+    # Plot the confusion matrix
+    cm=confusion_matrix(y_test,y_pred)
+    f,ax=plt.subplots(figsize=(5,5))
+    sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
+    plt.xlabel("y_pred")
+    plt.ylabel("y_true")
+    #plt.show() #dont need rn
 
-cb.fit(X_train, y_train)
-y_pred = cb.predict(X_test)
-print(classification_report(y_test,y_pred))
-print("Accuracy of CatBoost: "+ str(accuracy_score(y_test, y_pred)))
-print("Precision of CatBoost: "+ str(precision_score(y_test, y_pred, average='weighted')))
-print("Recall of CatBoost: "+ str(recall_score(y_test, y_pred, average='weighted')))
-print("Average F1 of CatBoost: "+ str(f1_score(y_test, y_pred, average='weighted')))
-print("F1 of CatBoost for each type of attack: "+ str(f1_score(y_test, y_pred, average=None)))
-cb_f1=f1_score(y_test, y_pred, average=None)
+    # %% [markdown]
+    # ## Proposed ensemble model: Leader Class and Confidence Decision Ensemble (LCCDE)
 
-# Plot the confusion matrix
-cm=confusion_matrix(y_test,y_pred)
-f,ax=plt.subplots(figsize=(5,5))
-sns.heatmap(cm,annot=True,linewidth=0.5,linecolor="red",fmt=".0f",ax=ax)
-plt.xlabel("y_pred")
-plt.ylabel("y_true")
-#plt.show() #dont need rn
+    # %% [markdown]
+    # LCCDE aims to achieve optimal model performance by identifying the best-performing base ML model with the highest prediction confidence for each class. 
 
-# %% [markdown]
-# ## Proposed ensemble model: Leader Class and Confidence Decision Ensemble (LCCDE)
+    # %% [markdown]
+    # ### Find the best-performing (leading) model for each type of attack among the three ML models
 
-# %% [markdown]
-# LCCDE aims to achieve optimal model performance by identifying the best-performing base ML model with the highest prediction confidence for each class. 
+    # %%
+    # Leading model list for each class
+    global model
+    model=[]
+    for i in range(len(lg_f1)):
+        if max(lg_f1[i],xg_f1[i],cb_f1[i]) == lg_f1[i]:
+            model.append(lg)
+        elif max(lg_f1[i],xg_f1[i],cb_f1[i]) == xg_f1[i]:
+            model.append(xg)
+        else:
+            model.append(cb)
 
-# %% [markdown]
-# ### Find the best-performing (leading) model for each type of attack among the three ML models
+    # %%
+    model
+    return lg_f1, xg_f1, cb_f1
 
-# %%
-# Leading model list for each class
-model=[]
-for i in range(len(lg_f1)):
-    if max(lg_f1[i],xg_f1[i],cb_f1[i]) == lg_f1[i]:
-        model.append(lg)
-    elif max(lg_f1[i],xg_f1[i],cb_f1[i]) == xg_f1[i]:
-        model.append(xg)
-    else:
-        model.append(cb)
-
-# %%
-model
 
 # %% [markdown]
 # **Leading Model for Each Type of Attack:**  
@@ -272,7 +280,9 @@ def LCCDE(X_test, y_test, m1, m2, m3):
 # %%
 # %%time
 # Implementing LCCDE
-def run_model():
+def run_model(data_path):
+    X_train, X_test, y_train, y_test = data_prep(data_path)
+    lg_f1, xg_f1, cb_f1 = train_base(X_train, X_test, y_train, y_test)
     yt, yp = LCCDE(X_test, y_test, m1 = lg, m2 = xg, m3 = cb)
     end_time = time.time()
     run_model_time = end_time - start_time

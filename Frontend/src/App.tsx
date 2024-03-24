@@ -25,7 +25,7 @@ function App() {
     the modified string received within 'result' and displays that */}
   const executePythonCode = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/run-python-code', { code: pythonCode });
+      const response = await axios.post('http://localhost:5000/lccde', { code: pythonCode });
 
       setResult(response.data.result);
     } catch (error) {

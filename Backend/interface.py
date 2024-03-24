@@ -14,6 +14,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
+import lccde
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
@@ -25,7 +26,12 @@ def run_python_code():
 # fe will hit one of these endpoints with a populated jsonm which will include params and the like
 @app.route('/lccde', methods=['POST'])
 def alg1():
-    pass
+    params = code = request.json.get('code')
+    path = ''
+    if params == 'cicds2017_sample_km':
+        path = './Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv'
+    results = lccde.run_model(path)
+    return jsonify({'result': results})
 
 @app.route('/mth', methods=['POST'])
 def alg2():
