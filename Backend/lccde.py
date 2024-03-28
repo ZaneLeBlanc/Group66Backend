@@ -83,11 +83,12 @@ def train_base(X_train, X_test, y_train, y_test):
     global lg
     global xg
     global cb
-    # %%
-    # %%time
+    
+    #time models
     global start_time
-    # Train the LightGBM algorithm
     start_time = time.time()
+
+    # Train the LightGBM algorithm
     import lightgbm as lgb
     lg = lgb.LGBMClassifier()
     lg.fit(X_train, y_train)

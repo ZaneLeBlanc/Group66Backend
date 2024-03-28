@@ -8,6 +8,7 @@
 # L. Yang, A. Moubayed, I. Hamieh and A. Shami, "Tree-Based Intelligent Intrusion Detection System in Internet of Vehicles," 2019 IEEE Global Communications Conference (GLOBECOM), 2019, pp. 1-6, doi: 10.1109/GLOBECOM38437.2019.9013892.  
 
 # %%
+import time
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -123,7 +124,11 @@ def preprocessing():
 # ## Machine learning model training
 
 def train_base(X_train, X_test, y_train, y_test):
-    # %% [markdown]
+
+    #time models
+    global start_time
+    start_time = time.time()
+
     # ### Training four base learners: decision tree, random forest, extra trees, XGBoost
 
     # %%
@@ -490,7 +495,11 @@ def run_model():
     train_base(X_train, X_test, y_train, y_test)
     X_train, X_test, y_train, y_test = feature_selection()
     train_after_feature_select(X_train, X_test, y_train, y_test)
+    end_time = time.time()
+    run_model_time = end_time - start_time
 
-run_model()
+    return #manythings
+
+#run_model()
 
 
