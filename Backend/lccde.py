@@ -242,12 +242,17 @@ def run_model(data_path, xgb_params, lg_params, cb_params):
     yt, yp = LCCDE(X_test, y_test, m1 = lg, m2 = xg, m3 = cb)
     end_time = time.time()
     run_model_time = end_time - start_time
-    # %%
+    
+    accuracy = str(accuracy_score(yt, yp))
+    precision = str(precision_score(yt, yp, average='weighted'))
+    recall = str(recall_score(yt, yp, average='weighted'))
+    f1 = str(f1_score(yt, yp, average='weighted'))
+
     # The performance of the proposed lCCDE model
-    print("Accuracy of LCCDE: "+ str(accuracy_score(yt, yp)))
-    print("Precision of LCCDE: "+ str(precision_score(yt, yp, average='weighted')))
-    print("Recall of LCCDE: "+ str(recall_score(yt, yp, average='weighted')))
-    print("Average F1 of LCCDE: "+ str(f1_score(yt, yp, average='weighted')))
+    print("Accuracy of LCCDE: "+ accuracy)
+    print("Precision of LCCDE: "+ precision)
+    print("Recall of LCCDE: "+ recall)
+    print("Average F1 of LCCDE: "+ f1)
     print("F1 of LCCDE for each type of attack: "+ str(f1_score(yt, yp, average=None)))
 
     # %%
@@ -256,8 +261,10 @@ def run_model(data_path, xgb_params, lg_params, cb_params):
     print("F1 of XGBoost for each type of attack: "+ str(xg_f1))
     print("F1 of CatBoost for each type of attack: "+ str(cb_f1))
 
+    cm=confusion_matrix(yt,yp)
+
     #format time, accuracy, prec, recall, f1
-    return (str(run_model_time), str(accuracy_score(yt, yp)), str(precision_score(yt, yp, average='weighted')), str(recall_score(yt, yp, average='weighted')), str(f1_score(yt, yp, average='weighted')))
+    return (str(run_model_time), accuracy, precision, recall, f1, str(cm.tolist()))
 
 # %% [markdown]
 # **Conclusion**: The performance (F1-score) of the proposed LCCDE ensemble model on each type of attack detection is higher than any base ML model.

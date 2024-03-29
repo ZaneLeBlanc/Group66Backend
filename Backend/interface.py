@@ -24,18 +24,23 @@ def run_python_code():
     return jsonify({'result': result})
 
 # fe will hit one of these endpoints with a populated jsonm which will include params and the like
-@app.route('/lccde', methods=['POST'])
+@app.route('/runlccde', methods=['POST'])
 def alg1():
     params = request.json
     result_json = lccde_helper.run(params)
     return jsonify(result_json)
 
-@app.route('/mth', methods=['POST'])
+@app.route('/retrievelccde', methods=['POST'])
 def alg2():
+    result_json = lccde_helper.get_runs()
+    return jsonify(result_json)
+
+@app.route('/mth', methods=['POST'])
+def alg3():
     pass
 
 @app.route('/tree-based', methods=['POST'])
-def alg3():
+def alg4():
     pass
 
 

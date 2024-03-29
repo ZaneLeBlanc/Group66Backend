@@ -1,3 +1,5 @@
+import datetime
+import sqlite3
 import lccde
 import json
 
@@ -32,13 +34,16 @@ def run(json_req):
     default_fill(json_req, default_params)
 
     #run model
-    result = lccde.run_model('./Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
+    result = lccde.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
     #print (result)
 
     #create json
     result_json = parse_to_json(result)
     #print('results')
     #print(result_json)
+
+    #store results
+    record(result, xgb_params, lg_params, cb_params)
     
     return result_json
     #return json result
@@ -59,16 +64,71 @@ def default_fill(json_req, default):
     
     #print(json) #after
 
-#rerun function
-def rerun(json_req):
-    #parse json
+#get runs from db function
+def get_runs():
 
-    #hit the db
-    pass
+    keys = ['id', 'execution_time', 'run_date', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
+    XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
+    LG_keys = ['num_iterations', 'max_depth', 'learning_rate', 'num_leaves', 'boosting_type']
+    CB_keys = ['n_estimators', 'max_depth', 'learning_rate']
+
+    connection = sqlite3.connect('test_DB.db')
+    c = connection.cursor()
+
+    c.execute("SELECT * FROM LCCDE")
+    rows = c.fetchall()
+
+    c.close()
+    connection.close()
+    #parse json
+    
+    rows_dict = { "rows" : [] }
+
+    for r in rows:
+        idx_offset = 0
+        row_dict = {}
+        for i, key in enumerate(keys):
+            row_dict[key] = r[i]
+        idx_offset += len(keys) - 1   
+        row_dict['XGB'] = {}
+        for i, key in enumerate(XGB_keys):
+            row_dict['XGB'][key] = r[i + idx_offset]
+        idx_offset += len(XGB_keys) - 1 
+        row_dict['LightGBM'] = {}
+        for i, key in enumerate(LG_keys):
+            row_dict['LightGBM'][key] = r[i + idx_offset]
+        idx_offset += len(LG_keys) - 1 
+        row_dict['CatBoost'] = {}
+        for i, key in enumerate(CB_keys):
+            row_dict['CatBoost'][key] = r[i + idx_offset]
+        rows_dict["rows"].append(row_dict)
+
+    #print(rows_dict)
+    json_rows = json.dumps(rows_dict)
+    return json_rows
+ 
 
 #record in db function?
-def record():
-    pass
+def record(result, xgb_params, lg_params, cb_params):
+
+    connection = sqlite3.connect('test_DB.db')
+    c = connection.cursor()
+
+    param_lists = [xgb_params, lg_params, cb_params]
+    record = list(result)
+
+    for model_params in param_lists:
+        for param in model_params:
+            record.append(model_params[param])
+
+    record.append(datetime.datetime.now())
+    print(record)
+
+    c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    connection.commit()
+
+    c.close()
+    connection.close()
 
 #read from db function? how are we searching
 def read():
@@ -89,28 +149,28 @@ def parse_to_json(result):
     return json_result
 
 #testing json
-# json_ex = {
-#   "model_req": {
-#   "dataset_path": "",
-#     "XGB": {
-#       "n_estimators": "100",
-#       "max_depth": "",
-#       "learning_rate": "0.1"
-#     },
-#     "LightGBM": {
-#       "num_iterations": 100,
-#       "max_depth": "",
-#       "learning_rate": "0.1",
-#       "num_leaves": "31",
-#       "boosting_type": "gbdt"
-#     },
-#     "CatBoost": {
-#       "n_estimators": 100, 
-#       "max_depth": "",
-#       "learning_rate": ""
-#     }
-#  }
-# }
+json_ex = {
+   "model_req": {
+  "dataset_path": "",
+     "XGB": {
+       "n_estimators": "100",
+       "max_depth": "",
+       "learning_rate": "0.1"
+     },
+     "LightGBM": {
+       "num_iterations": 100,
+       "max_depth": "",
+       "learning_rate": "0.1",
+       "num_leaves": "31",
+       "boosting_type": "gbdt"
+   },
+    "CatBoost": {
+       "n_estimators": 100, 
+       "max_depth": "",
+       "learning_rate": ""
+     }
+  }
+ }
 
 #result format
 # results = {
@@ -125,3 +185,4 @@ def parse_to_json(result):
 # }
 
 #run(json_ex)
+#get_runs()

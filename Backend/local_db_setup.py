@@ -14,34 +14,47 @@ class LCCDE(Base):
     __tablename__ = 'LCCDE'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    duration = Column(Integer, nullable=False) #is duration calculated through ML engine or here?
-    run_date = Column(DateTime, default= datetime.datetime.utcnow)
-    accuracy = Column(FLOAT(precision=7,scale=6))
-    prec = Column(FLOAT(precision=7,scale=6))
-    recall = Column(FLOAT(precision=7,scale=6))
-    f1_score = Column(FLOAT(precision=7,scale=6))
+    duration = Column(FLOAT)
+    run_date = Column(DateTime, default= datetime.datetime.now())
+    accuracy = Column(FLOAT)
+    prec = Column(FLOAT)
+    recall = Column(FLOAT)
+    f1_score = Column(FLOAT)
+    heatmap_data = Column(String)
+    #params
+    xgb_n_estimators = Column(Integer)
+    xgb_max_depth = Column(Integer)
+    xgb_learning_rate = Column(FLOAT)
+    lg_num_iterations = Column(Integer)
+    lg_max_depth = Column(Integer)
+    lg_learning_rate = Column(FLOAT)
+    lg_num_leaves = Column(Integer)
+    lg_boosting_type = Column(String)
+    cb_n_estimators = Column(Integer)
+    cb_max_depth = Column(Integer)
+    cb_learning_rate = Column(FLOAT)
 
 class TreeBased(Base):
     __tablename__ = 'TreeBased'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    duration = Column(Integer, nullable=False) #is duration calculated through ML engine or here?
-    run_date = Column(DateTime, default= datetime.datetime.utcnow)
-    accuracy = Column(FLOAT(precision=7,scale=6))
-    prec = Column(FLOAT(precision=7,scale=6))
-    recall = Column(FLOAT(precision=7,scale=6))
-    f1_score = Column(FLOAT(precision=7,scale=6))
+    duration = Column(FLOAT)
+    run_date = Column(DateTime, default= datetime.datetime.now())
+    accuracy = Column(FLOAT)
+    prec = Column(FLOAT)
+    recall = Column(FLOAT)
+    f1_score = Column(FLOAT)
 
 class MTH(Base):
     __tablename__ = 'mth'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    duration = Column(Integer, nullable=False) #is duration calculated through ML engine or here?
-    run_date = Column(DateTime, default= datetime.datetime.utcnow)
-    accuracy = Column(FLOAT(precision=7,scale=6))
-    prec = Column(FLOAT(precision=7,scale=6))
-    recall = Column(FLOAT(precision=7,scale=6))
-    f1_score = Column(FLOAT(precision=7,scale=6))
+    duration = Column(FLOAT) 
+    run_date = Column(DateTime, default= datetime.datetime.now())
+    accuracy = Column(FLOAT)
+    prec = Column(FLOAT)
+    recall = Column(FLOAT)
+    f1_score = Column(FLOAT)
 
 # Create History table for all runs
         #go back and create link between this table and others
@@ -50,8 +63,8 @@ class RunHistory(Base):
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     duration = Column(Integer, nullable=False)
-    run_date = Column(DateTime, default= datetime.datetime.utcnow)
-
+    run_date = Column(DateTime, default= datetime.datetime.now())
+s
 # -----TRIGGERS-----
     # maybe switch to @validate?
 @event.listens_for(Base.metadata, 'after_create')
@@ -84,6 +97,11 @@ Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)
 session= Session()
+
+row = LCCDE(duration = 32.77018928527832, accuracy= 0.9973880597014926, prec= 0.9973952881851091, recall= 0.9973880597014926, f1_score= 0.9973621970126231)
+session.add(row)
+
+session.commit()
 
 session.close()
 
