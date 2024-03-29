@@ -98,9 +98,6 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session= Session()
 
-row = LCCDE(duration = 32.77018928527832, accuracy= 0.9973880597014926, prec= 0.9973952881851091, recall= 0.9973880597014926, f1_score= 0.9973621970126231)
-session.add(row)
-
 session.commit()
 
 session.close()

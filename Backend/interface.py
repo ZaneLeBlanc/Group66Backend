@@ -7,6 +7,10 @@
 # This file will serve as a medium for requests to travel from fe -> be/db
 # modifying currently called functions should be done with care
 
+# Amy (3/29)
+# to initialize the db:
+# 'python local_db_setup.py'
+
 # to start it up you do 
 # 'python <filename>.py'
 
