@@ -29,67 +29,49 @@ from river import stream
 from statistics import mode
 
 def data_prep(data_path):
-    # %% [markdown]
+
     # ## Read the sampled CICIDS2017 dataset
     # The CICIDS2017 dataset is publicly available at: https://www.unb.ca/cic/datasets/ids-2017.html  
     # Due to the large size of this dataset, the sampled subsets of CICIDS2017 is used. The subsets are in the "data" folder.  
     # If you want to use this code on other datasets (e.g., CAN-intrusion dataset), just change the dataset name and follow the same steps. The models in this code are generic models that can be used in any intrusion detection/network traffic datasets.
 
-    # %%
     # "./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv"
     df = pd.read_csv(data_path)
 
-    # %%
     df.Label.value_counts()
-
-    # %% [markdown]
-    # **Corresponding Attack Types:**  
-    # 0 BENIGN &emsp; 18225  
-    # 3 DoS        &emsp;   &emsp;   3042  
-    # 6 WebAttack    &emsp;      2180  
-    # 1 Bot        &emsp;  &emsp;      1966    
-    # 5 PortScan  &emsp;       1255  
-    # 2 BruteForce  &emsp;      96  
-    # 4 Infiltration  &emsp;       36  
-
-    # %% [markdown]
     # ## Split train set and test set
 
-    # %%
     X = df.drop(['Label'],axis=1)
     y = df['Label']
     X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0) #shuffle=False
 
-    # %% [markdown]
     # ## SMOTE to solve class-imbalance
-
-    # %%
     pd.Series(y_train).value_counts()
 
-    # %%
     from imblearn.over_sampling import SMOTE
     smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
 
-    # %%
     X_train, y_train = smote.fit_resample(X_train, y_train)
 
-    # %%
     pd.Series(y_train).value_counts()
     return X_train, X_test, y_train, y_test
-    # %% [markdown]
+
+
     # ## Machine Learning (ML) model training
     # ### Training three base learners: LightGBM, XGBoost, CatBoost
-def train_base(X_train, X_test, y_train, y_test):
+
+def train_base(X_train, X_test, y_train, y_test, xgb_params, lg_params, cb_params):
     global lg
     global xg
     global cb
-    # %%
-    # %%time
+    
+    #time models
     global start_time
-    # Train the LightGBM algorithm
     start_time = time.time()
+
+    ##### Train the LightGBM algorithm #####
     import lightgbm as lgb
-    lg = lgb.LGBMClassifier()
+    lg = lgb.LGBMClassifier(**lg_params)
     lg.fit(X_train, y_train)
     y_pred = lg.predict(X_test)
     print(classification_report(y_test,y_pred))
@@ -108,11 +90,9 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.ylabel("y_true")
     #plt.show() #dont need rn
 
-    # %%
-    # %%time
-    # Train the XGBoost algorithm
+    ##### Train the XGBoost algorithm #####
     import xgboost as xgb
-    xg = xgb.XGBClassifier()
+    xg = xgb.XGBClassifier(**xgb_params)
 
     X_train_x = X_train.values
     X_test_x = X_test.values
@@ -136,11 +116,9 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.ylabel("y_true")
     #plt.show() #dont need rn
 
-    # %%
-    # %%time
-    # Train the CatBoost algorithm
+    ##### Train the CatBoost algorithm #####
     import catboost as cbt
-    cb = cbt.CatBoostClassifier(verbose=0,boosting_type='Plain')
+    cb = cbt.CatBoostClassifier(verbose=0,boosting_type='Plain', **cb_params)
     #cb = cbt.CatBoostClassifier()
 
     cb.fit(X_train, y_train)
@@ -161,16 +139,10 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.ylabel("y_true")
     #plt.show() #dont need rn
 
-    # %% [markdown]
     # ## Proposed ensemble model: Leader Class and Confidence Decision Ensemble (LCCDE)
-
-    # %% [markdown]
     # LCCDE aims to achieve optimal model performance by identifying the best-performing base ML model with the highest prediction confidence for each class. 
-
-    # %% [markdown]
     # ### Find the best-performing (leading) model for each type of attack among the three ML models
 
-    # %%
     # Leading model list for each class
     global model
     model=[]
@@ -181,26 +153,11 @@ def train_base(X_train, X_test, y_train, y_test):
             model.append(xg)
         else:
             model.append(cb)
-
-    # %%
     model
+
     return lg_f1, xg_f1, cb_f1
 
-
-# %% [markdown]
-# **Leading Model for Each Type of Attack:**  
-# 0 BENIGN: &emsp; XGBClassifier  
-# 1 Bot:        &emsp;  &emsp;      XGBClassifier   
-# 2 BruteForce:  &emsp;      LGBMClassifier  
-# 3 DoS:        &emsp;   &emsp;   XGBClassifier  
-# 4 Infiltration:  &emsp;       LGBMClassifier  
-# 5 PortScan:  &emsp;       LGBMClassifier  
-# 6 WebAttack:    &emsp;      XGBClassifier  
-
-# %% [markdown]
 # ## LCCDE Prediction
-
-# %%
 def LCCDE(X_test, y_test, m1, m2, m3):
     i = 0
     t = []
@@ -277,21 +234,25 @@ def LCCDE(X_test, y_test, m1, m2, m3):
         yp.append(y_pred) # Save the predicted classes for all tested samples
     return yt, yp
 
-# %%
-# %%time
+
 # Implementing LCCDE
-def run_model(data_path):
+def run_model(data_path, xgb_params, lg_params, cb_params):
     X_train, X_test, y_train, y_test = data_prep(data_path)
-    lg_f1, xg_f1, cb_f1 = train_base(X_train, X_test, y_train, y_test)
+    lg_f1, xg_f1, cb_f1 = train_base(X_train, X_test, y_train, y_test, xgb_params, lg_params, cb_params)
     yt, yp = LCCDE(X_test, y_test, m1 = lg, m2 = xg, m3 = cb)
     end_time = time.time()
     run_model_time = end_time - start_time
-    # %%
+    
+    accuracy = str(accuracy_score(yt, yp))
+    precision = str(precision_score(yt, yp, average='weighted'))
+    recall = str(recall_score(yt, yp, average='weighted'))
+    f1 = str(f1_score(yt, yp, average='weighted'))
+
     # The performance of the proposed lCCDE model
-    print("Accuracy of LCCDE: "+ str(accuracy_score(yt, yp)))
-    print("Precision of LCCDE: "+ str(precision_score(yt, yp, average='weighted')))
-    print("Recall of LCCDE: "+ str(recall_score(yt, yp, average='weighted')))
-    print("Average F1 of LCCDE: "+ str(f1_score(yt, yp, average='weighted')))
+    print("Accuracy of LCCDE: "+ accuracy)
+    print("Precision of LCCDE: "+ precision)
+    print("Recall of LCCDE: "+ recall)
+    print("Average F1 of LCCDE: "+ f1)
     print("F1 of LCCDE for each type of attack: "+ str(f1_score(yt, yp, average=None)))
 
     # %%
@@ -300,8 +261,10 @@ def run_model(data_path):
     print("F1 of XGBoost for each type of attack: "+ str(xg_f1))
     print("F1 of CatBoost for each type of attack: "+ str(cb_f1))
 
+    cm=confusion_matrix(yt,yp)
+
     #format time, accuracy, prec, recall, f1
-    return (str(run_model_time), str(accuracy_score(yt, yp)), str(precision_score(yt, yp, average='weighted')), str(recall_score(yt, yp, average='weighted')), str(f1_score(yt, yp, average='weighted')))
+    return (str(run_model_time), accuracy, precision, recall, f1, str(cm.tolist()))
 
 # %% [markdown]
 # **Conclusion**: The performance (F1-score) of the proposed LCCDE ensemble model on each type of attack detection is higher than any base ML model.

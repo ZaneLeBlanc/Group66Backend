@@ -7,6 +7,10 @@
 # This file will serve as a medium for requests to travel from fe -> be/db
 # modifying currently called functions should be done with care
 
+# Amy (3/29)
+# to initialize the db:
+# 'python local_db_setup.py'
+
 # to start it up you do 
 # 'python <filename>.py'
 
@@ -14,7 +18,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
-import lccde
+import lccde_helper
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
@@ -24,21 +28,23 @@ def run_python_code():
     return jsonify({'result': result})
 
 # fe will hit one of these endpoints with a populated jsonm which will include params and the like
-@app.route('/lccde', methods=['POST'])
+@app.route('/runlccde', methods=['POST'])
 def alg1():
-    params = code = request.json.get('code')
-    path = ''
-    if params == 'cicds2017_sample_km':
-        path = './Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv'
-    results = lccde.run_model(path)
-    return jsonify({'result': results})
+    params = request.json
+    result_json = lccde_helper.run(params)
+    return jsonify(result_json)
+
+@app.route('/retrievelccde', methods=['POST'])
+def alg2():
+    result_json = lccde_helper.get_runs()
+    return jsonify(result_json)
 
 @app.route('/mth', methods=['POST'])
-def alg2():
+def alg3():
     pass
 
 @app.route('/tree-based', methods=['POST'])
-def alg3():
+def alg4():
     pass
 
 
