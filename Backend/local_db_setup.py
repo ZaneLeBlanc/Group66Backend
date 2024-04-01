@@ -1,12 +1,11 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy import event, DDL
 from sqlalchemy.dialects.mysql import FLOAT
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from db_session import engine, Session
+
 import datetime
 
-database_url = 'sqlite:///test_DB.db'
-engine = create_engine(database_url, echo=True)
 Base = declarative_base()
 
 # create tables for ML Algorithm Runs
@@ -45,6 +44,21 @@ class TreeBased(Base):
     recall = Column(FLOAT)
     f1_score = Column(FLOAT)
 
+    #parameters
+    xgb_estimators = Column(FLOAT)
+    xgb_max_depth = Column(Integer)
+    xgb_learning_rate = Column(FLOAT)
+    dtree_max_depth = Column(FLOAT)
+    dtree_min_samples = Column(Integer)
+    dtree_splitter = Column(String)
+    rtree_estimators = Column(Integer)
+    rtree_max_depth = Column(Integer)
+    rtree_min_samples = Column(Integer)
+    etree_estimators = Column(Integer)
+    etree_max_depth = Column(Integer)
+    etree_min_samples = Column(Integer)
+    tree_criterion = Column(String)
+
 class MTH(Base):
     __tablename__ = 'mth'
 
@@ -64,7 +78,7 @@ class RunHistory(Base):
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     duration = Column(Integer, nullable=False)
     run_date = Column(DateTime, default= datetime.datetime.now())
-s
+    
 # -----TRIGGERS-----
     # maybe switch to @validate?
 @event.listens_for(Base.metadata, 'after_create')
@@ -95,12 +109,12 @@ def make_triggers(target, connection, **kw):
 
 Base.metadata.create_all(engine)
 
-Session = sessionmaker(bind=engine)
-session= Session()
 
-session.commit()
+# session= Session()
 
-session.close()
+# session.commit()
+
+# session.close()
 
 # TO DO:
     # add items into table and make sure triggers work
