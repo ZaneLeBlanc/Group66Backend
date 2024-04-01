@@ -19,6 +19,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 import lccde_helper
+import json
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
@@ -28,13 +29,17 @@ def run_python_code():
     return jsonify({'result': result})
 
 # fe will hit one of these endpoints with a populated jsonm which will include params and the like
-@app.route('/runlccde', methods=['POST'])
+@app.route('/runLccde', methods=['PUT'])
 def alg1():
-    params = request.json
+    #in postman del .get('code')
+    params = request.json.get('code')
+    #jsonify incoming
+    params = json.loads(params)
     result_json = lccde_helper.run(params)
+
     return jsonify(result_json)
 
-@app.route('/retrievelccde', methods=['POST'])
+@app.route('/retrieveLccde', methods=['PUT'])
 def alg2():
     result_json = lccde_helper.get_runs()
     return jsonify(result_json)
