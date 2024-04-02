@@ -10,46 +10,48 @@ default_params = {
       "learning_rate": 0.3
     },
     "DTree": {
-      "max_depth": 0.2,
-      "min_samples": 7,
-      "splitter": "best"
+      "max_depth": None,
+      "min_samples_split": 2,
+      "splitter": "gini"
     },
     "RTree": {
       "n_estimators": 100, 
       "max_depth": None,
-      "min_samples": 7
+      "min_samples_split": 2
     },
     "ETree": { 
       "n_estimators": 100,
       "max_depth": None,
-      "min_samples": 7,
-      "criterion:": "gini"
+      "min_samples_split": 2,
     }
 }
 
 #testing json
 json_ex = {
-   "model_req": {
-  "dataset_path": "",
-     "XGB": {
-       "n_estimators": "100",
-       "max_depth": "",
-       "learning_rate": "0.1"
-     },
-     "LightGBM": {
-       "num_iterations": 100,
-       "max_depth": "",
-       "learning_rate": "0.1",
-       "num_leaves": "31",
-       "boosting_type": "gbdt"
-   },
-    "CatBoost": {
-       "n_estimators": 100, 
-       "max_depth": "",
-       "learning_rate": ""
-     }
-  }
- }
+    "model_req": {
+        "dataset_path": "",
+        "XGB": {
+      "n_estimators": 100,
+      "max_depth": 6,
+      "learning_rate": 0.3
+    },
+    "DTree": {
+      "max_depth": None,
+      "min_samples_split": 2,
+      "splitter": "gini"
+    },
+    "RTree": {
+      "n_estimators": 100, 
+      "max_depth": None,
+      "min_samples_split": 2
+    },
+    "ETree": { 
+      "n_estimators": 100,
+      "max_depth": None,
+      "min_samples_split": 2,
+    }
+    }
+}
 
 #regular run function
 def run(json_req):
@@ -63,7 +65,7 @@ def run(json_req):
     default_fill(json_req, default_params)
 
     #run model
-    result = treebased.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
+    result = treebased.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
     #print (result)
 
     #create json
@@ -98,9 +100,9 @@ def get_runs():
 
     keys = ['id', 'execution_time', 'run_date', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
     XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
-    DT_keys = ['max_depth', 'min_samples', 'splitter']
-    RT_keys = ['n_estimators', 'max_depth', 'min_samples']
-    ET_keys = ['n_estimators', 'max_depth', 'min_samples', 'criterion']
+    DT_keys = ['max_depth', 'min_samples_split', 'splitter']
+    RT_keys = ['n_estimators', 'max_depth', 'min_samples_split']
+    ET_keys = ['n_estimators', 'max_depth', 'min_samples_split']
 
     connection = sqlite3.connect('test_DB.db')
     c = connection.cursor()
@@ -157,7 +159,7 @@ def record(result, xgb_params, dtree_params, rtree_params, etree_params):
     record.append(datetime.datetime.now())
     print(record)
 
-    c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples, tree_criteion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     connection.commit()
 
     c.close()
@@ -181,8 +183,8 @@ def parse_to_json(result):
     json_result = json.dumps(json_result)
     return json_result
 
-if __name__ == "__main__":
-    run(json_ex)
+# if __name__ == "__main__":
+#     run(json_ex)
 
 
 
