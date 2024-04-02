@@ -18,8 +18,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
-# import lccde_helper
-import treebased_helper
+import lccde_helper
+# import treebased_helper
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
