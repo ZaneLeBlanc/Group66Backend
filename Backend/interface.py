@@ -44,16 +44,18 @@ def alg2():
 def alg3():
     pass
 
-# @app.route('/runtree', methods=['POST'])
-# def alg4():
-#     params = request.json
-#     result_json = treebased_helper.run(params)
-#     return jsonify(result_json)
+@app.route('/runtree', methods=['POST'])
+def alg4():
+    # params = request.json
+    # result_json = treebased_helper.run(params)
+    # return jsonify(result_json)
+    pass
 
-# @app.route('/retrievetree', methods=['POST'])
-# def alg5():
-#     result_json = treebased_helper.get_runs()
-#     return jsonify(result_json)
+@app.route('/retrievetree', methods=['POST'])
+def alg5():
+    # result_json = treebased_helper.get_runs()
+    # return jsonify(result_json)
+    pass
 
 
 if __name__ == '__main__':
