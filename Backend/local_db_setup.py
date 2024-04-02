@@ -48,16 +48,16 @@ class TreeBased(Base):
     xgb_estimators = Column(FLOAT)
     xgb_max_depth = Column(Integer)
     xgb_learning_rate = Column(FLOAT)
-    dtree_max_depth = Column(FLOAT)
-    dtree_min_samples = Column(Integer)
+    dtree_max_depth = Column(Integer)
+    dtree_min_samples = Column(FLOAT)
     dtree_splitter = Column(String)
     rtree_estimators = Column(Integer)
     rtree_max_depth = Column(Integer)
-    rtree_min_samples = Column(Integer)
+    rtree_min_samples = Column(FLOAT)
     etree_estimators = Column(Integer)
     etree_max_depth = Column(Integer)
-    etree_min_samples = Column(Integer)
-    tree_criterion = Column(String)
+    etree_min_samples = Column(FLOAT)
+    # tree_criterion = Column(String)
 
 class MTH(Base):
     __tablename__ = 'mth'

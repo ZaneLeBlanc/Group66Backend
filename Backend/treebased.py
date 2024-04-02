@@ -498,7 +498,7 @@ def train_after_feature_select(X_train, X_test, y_train, y_test):
 
 def run_model(data_path, xgb_params, dtree_params, rtree_params, etree_params):
     X_train, X_test, y_train, y_test = preprocessing(data_path)
-    train_base(X_train, X_test, y_train, y_test)
+    train_base(X_train, X_test, y_train, y_test, xgb_params, dtree_params, rtree_params, etree_params)
     X_train, X_test, y_train, y_test = feature_selection()
     accuracy, precision, recall, f1, cm = train_after_feature_select(X_train, X_test, y_train, y_test)
     end_time = time.time()

@@ -18,7 +18,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
-import lccde_helper
+# import lccde_helper
+import treebased_helper
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
@@ -27,25 +28,32 @@ def run_python_code():
     result = "Python received: [" + (code) + ']'
     return jsonify({'result': result})
 
-# fe will hit one of these endpoints with a populated jsonm which will include params and the like
-@app.route('/runlccde', methods=['POST'])
-def alg1():
-    params = request.json
-    result_json = lccde_helper.run(params)
-    return jsonify(result_json)
+# # fe will hit one of these endpoints with a populated jsonm which will include params and the like
+# @app.route('/runlccde', methods=['POST'])
+# def alg1():
+#     params = request.json
+#     result_json = lccde_helper.run(params)
+#     return jsonify(result_json)
 
-@app.route('/retrievelccde', methods=['POST'])
-def alg2():
-    result_json = lccde_helper.get_runs()
-    return jsonify(result_json)
+# @app.route('/retrievelccde', methods=['POST'])
+# def alg2():
+#     result_json = lccde_helper.get_runs()
+#     return jsonify(result_json)
 
 @app.route('/mth', methods=['POST'])
 def alg3():
     pass
 
-@app.route('/tree-based', methods=['POST'])
+@app.route('/runtree', methods=['POST'])
 def alg4():
-    pass
+    params = request.json
+    result_json = treebased_helper.run(params)
+    return jsonify(result_json)
+
+@app.route('/retrievetree', methods=['POST'])
+def alg5():
+    result_json = treebased_helper.get_runs()
+    return jsonify(result_json)
 
 
 if __name__ == '__main__':
