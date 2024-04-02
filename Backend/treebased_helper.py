@@ -2,6 +2,8 @@ import datetime
 import sqlite3
 import treebased
 import json
+# from db_session import Session
+# from local_db_setup import TreeBased
 
 default_params = {
     "XGB": {
@@ -145,25 +147,30 @@ def get_runs():
 
 #record in db function?
 def record(result, xgb_params, dtree_params, rtree_params, etree_params):
+    
+    # with Session.begin() as session:
+    #     session.add(
+    #         TreeBased(duration = )
+    #     )
+    print(list(result))
+    # connection = sqlite3.connect('test_DB.db')
+    # c = connection.cursor()
 
-    connection = sqlite3.connect('test_DB.db')
-    c = connection.cursor()
+    # param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
+    # record = list(result)
 
-    param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
-    record = list(result)
+    # for model_params in param_lists:
+    #     for param in model_params:
+    #         record.append(model_params[param])
 
-    for model_params in param_lists:
-        for param in model_params:
-            record.append(model_params[param])
+    # record.append(datetime.datetime.now())
+    # print(record)
 
-    record.append(datetime.datetime.now())
-    print(record)
+    # c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    # connection.commit()
 
-    c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
-    connection.commit()
-
-    c.close()
-    connection.close()
+    # c.close()
+    # connection.close()
 
 #read from db function? how are we searching
 def read():
