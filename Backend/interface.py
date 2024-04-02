@@ -28,32 +28,32 @@ def run_python_code():
     result = "Python received: [" + (code) + ']'
     return jsonify({'result': result})
 
-# # fe will hit one of these endpoints with a populated jsonm which will include params and the like
-# @app.route('/runlccde', methods=['POST'])
-# def alg1():
-#     params = request.json
-#     result_json = lccde_helper.run(params)
-#     return jsonify(result_json)
+# fe will hit one of these endpoints with a populated jsonm which will include params and the like
+@app.route('/runlccde', methods=['POST'])
+def alg1():
+    params = request.json
+    result_json = lccde_helper.run(params)
+    return jsonify(result_json)
 
-# @app.route('/retrievelccde', methods=['POST'])
-# def alg2():
-#     result_json = lccde_helper.get_runs()
-#     return jsonify(result_json)
+@app.route('/retrievelccde', methods=['POST'])
+def alg2():
+    result_json = lccde_helper.get_runs()
+    return jsonify(result_json)
 
 @app.route('/mth', methods=['POST'])
 def alg3():
     pass
 
-@app.route('/runtree', methods=['POST'])
-def alg4():
-    params = request.json
-    result_json = treebased_helper.run(params)
-    return jsonify(result_json)
+# @app.route('/runtree', methods=['POST'])
+# def alg4():
+#     params = request.json
+#     result_json = treebased_helper.run(params)
+#     return jsonify(result_json)
 
-@app.route('/retrievetree', methods=['POST'])
-def alg5():
-    result_json = treebased_helper.get_runs()
-    return jsonify(result_json)
+# @app.route('/retrievetree', methods=['POST'])
+# def alg5():
+#     result_json = treebased_helper.get_runs()
+#     return jsonify(result_json)
 
 
 if __name__ == '__main__':
