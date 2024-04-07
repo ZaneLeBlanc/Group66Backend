@@ -27,11 +27,11 @@ default_params = {
 def run(json_req):
     print (json_req)
     #decode/parse incoming json
+    default_fill(json_req, default_params)
+
     xgb_params = json_req["model_req"]["XGB"]
     lg_params = json_req["model_req"]["LightGBM"]
     cb_params = json_req["model_req"]["CatBoost"]
-
-    default_fill(json_req, default_params)
 
     #run model
     result = lccde.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
@@ -171,6 +171,8 @@ json_ex = {
      }
   }
  }
+
+#run(json_ex)
 
 #result format
 # results = {
