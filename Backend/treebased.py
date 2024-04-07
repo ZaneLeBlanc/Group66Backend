@@ -72,9 +72,9 @@ from xgboost import plot_importance
 # %% [markdown]
 # ### Preprocessing (normalization and padding values)
 
-def preprocessing():
+def preprocessing(data_path):
     global df, y
-    df = pd.read_csv('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv')
+    df = pd.read_csv(data_path)
 
     # %%
     # Min-max normalization
@@ -123,7 +123,7 @@ def preprocessing():
 # %% [markdown]
 # ## Machine learning model training
 
-def train_base(X_train, X_test, y_train, y_test):
+def train_base(X_train, X_test, y_train, y_test, xgb_params, dtree_params, rtree_params, etree_params):
 
     #time models
     global start_time
@@ -138,7 +138,7 @@ def train_base(X_train, X_test, y_train, y_test):
     global et
     global xg
 
-    dt = DecisionTreeClassifier(random_state = 0)
+    dt = DecisionTreeClassifier(**dtree_params)
     dt.fit(X_train,y_train) 
     dt_score=dt.score(X_test,y_test)
     y_predict=dt.predict(X_test)
@@ -155,6 +155,7 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    dt_f1 = fscore
 
     # %%
     dt_train=dt.predict(X_train)
@@ -162,7 +163,7 @@ def train_base(X_train, X_test, y_train, y_test):
 
     # %%
     # Random Forest training and prediction
-    rf = RandomForestClassifier(random_state = 0)
+    rf = RandomForestClassifier(**rtree_params)
     rf.fit(X_train,y_train) 
     rf_score=rf.score(X_test,y_test)
     y_predict=rf.predict(X_test)
@@ -179,6 +180,7 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    rt_f1 = fscore
 
     # %%
     rf_train=rf.predict(X_train)
@@ -186,7 +188,7 @@ def train_base(X_train, X_test, y_train, y_test):
 
     # %%
     # Extra trees training and prediction
-    et = ExtraTreesClassifier(random_state = 0)
+    et = ExtraTreesClassifier(**etree_params)
     et.fit(X_train,y_train) 
     et_score=et.score(X_test,y_test)
     y_predict=et.predict(X_test)
@@ -203,6 +205,7 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    et_f1 = fscore
 
     # %%
     et_train=et.predict(X_train)
@@ -210,7 +213,7 @@ def train_base(X_train, X_test, y_train, y_test):
 
     # %%
     # XGboost training and prediction
-    xg = xgb.XGBClassifier(n_estimators = 10)
+    xg = xgb.XGBClassifier(**xgb_params)
     xg.fit(X_train,y_train)
     xg_score=xg.score(X_test,y_test)
     y_predict=xg.predict(X_test)
@@ -227,6 +230,7 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    xgb_f1 = fscore
 
     # %%
     xg_train=xg.predict(X_train)
@@ -278,6 +282,7 @@ def train_base(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    return dt_f1, rt_f1, et_f1, xgb_f1
 
 # %% [markdown]
 def feature_selection():
@@ -487,18 +492,19 @@ def train_after_feature_select(X_train, X_test, y_train, y_test):
     plt.xlabel("y_pred")
     plt.ylabel("y_true")
     #plt.show()
+    return str(stk_score), precision, recall, fscore, cm
 
 # %%
 
-def run_model():
-    X_train, X_test, y_train, y_test = preprocessing()
-    train_base(X_train, X_test, y_train, y_test)
+def run_model(data_path, xgb_params, dtree_params, rtree_params, etree_params):
+    X_train, X_test, y_train, y_test = preprocessing(data_path)
+    train_base(X_train, X_test, y_train, y_test, xgb_params, dtree_params, rtree_params, etree_params)
     X_train, X_test, y_train, y_test = feature_selection()
-    train_after_feature_select(X_train, X_test, y_train, y_test)
+    accuracy, precision, recall, f1, cm = train_after_feature_select(X_train, X_test, y_train, y_test)
     end_time = time.time()
     run_model_time = end_time - start_time
 
-    return #manythings
+    return (str(run_model_time), accuracy, precision, recall, f1, str(cm.tolist()))
 
 #run_model()
 

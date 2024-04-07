@@ -18,6 +18,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
+
+import treebased_helper
 import lccde_helper
 import json
 
@@ -39,18 +41,32 @@ def alg1():
 
     return jsonify(result_json)
 
+
 @app.route('/retrieveLccde', methods=['PUT'])
 def alg2():
-    result_json = lccde_helper.get_runs()
-    return jsonify(result_json)
+    # result_json = lccde_helper.get_runs()
+    # return jsonify(result_json)
+    pass
 
 @app.route('/mth', methods=['POST'])
 def alg3():
     pass
 
-@app.route('/tree-based', methods=['POST'])
+@app.route('/runTree', methods=['PUT'])
 def alg4():
-    pass
+    params = request.json.get('code')
+    params = json.loads(params)
+    result_json = treebased_helper.run(params)
+    print(result_json)
+    return jsonify(result_json)
+    # pass
+
+@app.route('/retrievetree', methods=['PUT'])
+def alg5():
+    result_json = treebased_helper.get_runs()
+    print(result_json)
+    return jsonify(result_json)
+    # pass
 
 
 if __name__ == '__main__':
