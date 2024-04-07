@@ -20,6 +20,7 @@ app = Flask(__name__)
 CORS(app)
 # import lccde_helper
 import treebased_helper
+import json
 
 @app.route('/run-python-code', methods=['POST'])
 def run_python_code():
@@ -46,16 +47,19 @@ def alg2():
 def alg3():
     pass
 
-@app.route('/runtree', methods=['POST'])
+@app.route('/runTree', methods=['PUT'])
 def alg4():
-    params = request.json
+    params = request.json.get('code')
+    params = json.loads(params)
     result_json = treebased_helper.run(params)
+    print(result_json)
     return jsonify(result_json)
     # pass
 
-@app.route('/retrievetree', methods=['POST'])
+@app.route('/retrievetree', methods=['PUT'])
 def alg5():
     result_json = treebased_helper.get_runs()
+    print(result_json)
     return jsonify(result_json)
     # pass
 
