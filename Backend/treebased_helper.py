@@ -2,8 +2,9 @@ import datetime
 import sqlite3
 import treebased
 import json
-# from db_session import Session
-# from local_db_setup import TreeBased
+import sqlalchemy
+from db_session import Session, engine
+from data_models import TreeBased
 
 default_params = {
     "XGB": {
@@ -40,7 +41,7 @@ json_ex = {
     "DTree": {
       "max_depth": None,
       "min_samples_split": 2,
-      "splitter": "gini"
+      "splitter": "best"
     },
     "RTree": {
       "n_estimators": 100, 
@@ -67,18 +68,19 @@ def run(json_req):
     default_fill(json_req, default_params)
 
     #run model
-    result = treebased.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
+    # result = treebased.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
     #print (result)
 
     #create json
-    result_json = parse_to_json(result)
+    # result_json = parse_to_json(result)
     #print('results')
     #print(result_json)
 
     #store results
-    record(result, xgb_params, dtree_params, rtree_params, etree_params)
+    record('', xgb_params, dtree_params, rtree_params, etree_params)
     
-    return result_json
+    # return result_json
+    return None
     #return json result
 
 #fill the json will default parameters if they empty
@@ -148,12 +150,14 @@ def get_runs():
 #record in db function?
 def record(result, xgb_params, dtree_params, rtree_params, etree_params):
     
-    # with Session.begin() as session:
-    #     session.add(
-    #         TreeBased(duration = )
-    #     )
-    print(list(result))
-    # connection = sqlite3.connect('test_DB.db')
+    print(sqlalchemy.inspect(engine).has_table("TreeBased"))
+    with Session.begin() as session:
+        session.add(
+            TreeBased(duration=1.0, accuracy=2.0, prec=3.0, recall=0.2, f1_score = 0.4, dtree_splitter='gini'))
+        session.commit()
+        session.close()
+    # print(list(result))
+    # connection = sqlite3.connect('Backend/test_DB.db')
     # c = connection.cursor()
 
     # param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
@@ -166,7 +170,10 @@ def record(result, xgb_params, dtree_params, rtree_params, etree_params):
     # record.append(datetime.datetime.now())
     # print(record)
 
-    # c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    # query = "SELECT * FROM sqlite_master where type='table'"
+
+    # results = c.execute(query)
+    # # c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     # connection.commit()
 
     # c.close()
@@ -190,8 +197,8 @@ def parse_to_json(result):
     json_result = json.dumps(json_result)
     return json_result
 
-# if __name__ == "__main__":
-#     run(json_ex)
+if __name__ == "__main__":
+    run(json_ex)
 
 
 
