@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, TIMESTAMP
+from sqlalchemy.sql import func
 from sqlalchemy.dialects.mysql import FLOAT
 import datetime
 from sqlalchemy.orm import declarative_base
@@ -9,8 +10,8 @@ class LCCDE(Base):
     __tablename__ = 'LCCDE'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    duration = Column(FLOAT)
     run_date = Column(DateTime, default= datetime.datetime.now())
+    duration = Column(FLOAT)
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
     recall = Column(FLOAT)
@@ -33,12 +34,13 @@ class TreeBased(Base):
     __tablename__ = 'TreeBased'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
+    run_date = Column(TIMESTAMP, server_default=func.now())
     duration = Column(FLOAT)
-    run_date = Column(DateTime, default= datetime.datetime.now())
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
     recall = Column(FLOAT)
     f1_score = Column(FLOAT)
+    heatmap_data = Column(String)
 
     #parameters
     xgb_estimators = Column(FLOAT)

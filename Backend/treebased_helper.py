@@ -1,10 +1,11 @@
-import datetime
+from datetime import datetime
 import sqlite3
 import treebased
 import json
 import sqlalchemy
 from db_session import Session, engine
 from data_models import TreeBased
+from sqlalchemy import text
 
 default_params = {
     "XGB": {
@@ -29,33 +30,6 @@ default_params = {
     }
 }
 
-#testing json
-json_ex = {
-    "model_req": {
-        "dataset_path": "",
-        "XGB": {
-      "n_estimators": 100,
-      "max_depth": 6,
-      "learning_rate": 0.3
-    },
-    "DTree": {
-      "max_depth": None,
-      "min_samples_split": 2,
-      "splitter": "best"
-    },
-    "RTree": {
-      "n_estimators": 100, 
-      "max_depth": None,
-      "min_samples_split": 2
-    },
-    "ETree": { 
-      "n_estimators": 100,
-      "max_depth": None,
-      "min_samples_split": 2,
-    }
-    }
-}
-
 #regular run function
 def run(json_req):
     print (json_req)
@@ -68,19 +42,19 @@ def run(json_req):
     default_fill(json_req, default_params)
 
     #run model
-    # result = treebased.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
-    #print (result)
+    result = treebased.run_model('Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
+    print(result)
 
     #create json
-    # result_json = parse_to_json(result)
-    #print('results')
-    #print(result_json)
+    result_json = parse_to_json(result)
+    print('results')
+    print(result_json)
 
     #store results
-    record('', xgb_params, dtree_params, rtree_params, etree_params)
+    record(result, xgb_params, dtree_params, rtree_params, etree_params)
     
-    # return result_json
-    return None
+    return result_json
+    # return None
     #return json result
 
 #fill the json will default parameters if they empty
@@ -145,39 +119,28 @@ def get_runs():
     #print(rows_dict)
     json_rows = json.dumps(rows_dict)
     return json_rows
- 
+
 
 #record in db function?
 def record(result, xgb_params, dtree_params, rtree_params, etree_params):
-    
-    print(sqlalchemy.inspect(engine).has_table("TreeBased"))
+
     with Session.begin() as session:
-        session.add(
-            TreeBased(duration=1.0, accuracy=2.0, prec=3.0, recall=0.2, f1_score = 0.4, dtree_splitter='gini'))
+        param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
+        record = list(result)
+
+        for model_params in param_lists:
+            for param in model_params:
+                record.append(model_params[param])
+
+        rec_str = str(record)[1:-1]
+        rec_str = rec_str.replace("None", "NULL")
+
+        query = f'INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES ({rec_str})'
+        print(query)
+        session.execute(text(query))
+
         session.commit()
         session.close()
-    # print(list(result))
-    # connection = sqlite3.connect('Backend/test_DB.db')
-    # c = connection.cursor()
-
-    # param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
-    # record = list(result)
-
-    # for model_params in param_lists:
-    #     for param in model_params:
-    #         record.append(model_params[param])
-
-    # record.append(datetime.datetime.now())
-    # print(record)
-
-    # query = "SELECT * FROM sqlite_master where type='table'"
-
-    # results = c.execute(query)
-    # # c.execute("INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
-    # connection.commit()
-
-    # c.close()
-    # connection.close()
 
 #read from db function? how are we searching
 def read():
@@ -197,23 +160,48 @@ def parse_to_json(result):
     json_result = json.dumps(json_result)
     return json_result
 
-if __name__ == "__main__":
-    run(json_ex)
-
 
 
 
 #result format
 # results = {
 #   "model_results": {
+#     "execution_time": "",
 #     "accuracy": "",
 #     "precision": "",
 #     "recall": "",
 #     "f1": "",
-#     "execution_time": "",
 #     "heatmap": "Path to Heatmap Image"
 #     }
 # }
 
-#run(json_ex)
+#run(json_ex)  
 #get_runs()
+
+#testing json
+
+# {
+#     "model_req": {
+#         "dataset_path": "",
+#         "XGB": {
+#       "n_estimators": 100,
+#       "max_depth": 6,
+#       "learning_rate": 0.3
+#     },
+#     "DTree": {
+#       "max_depth": null,
+#       "min_samples_split": 2,
+#       "splitter": "best"
+#     },
+#     "RTree": {
+#       "n_estimators": 100, 
+#       "max_depth": null,
+#       "min_samples_split": 2
+#     },
+#     "ETree": { 
+#       "n_estimators": 100,
+#       "max_depth": null,
+#       "min_samples_split": 2
+#     }
+#     }
+# }
