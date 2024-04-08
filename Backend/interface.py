@@ -34,18 +34,18 @@ def run_python_code():
 @app.route('/runLccde', methods=['PUT'])
 def alg1():
     #in postman del .get('code')
-    params = request.json.get('code')
+    params = request.json
     #jsonify incoming
-    params = json.loads(params)
+    #params = json.loads(params)
     result_json = lccde_helper.run(params)
 
     return jsonify(result_json)
 
 
-@app.route('/retrieveLccde', methods=['PUT'])
+@app.route('/retrieveLccde', methods=['GET'])
 def alg2():
-    # result_json = lccde_helper.get_runs()
-    # return jsonify(result_json)
+    result_json = lccde_helper.get_runs()
+    return jsonify(result_json)
     pass
 
 @app.route('/mth', methods=['POST'])
@@ -61,7 +61,7 @@ def alg4():
     return jsonify(result_json)
     # pass
 
-@app.route('/retrievetree', methods=['PUT'])
+@app.route('/retrieveTree', methods=['GET'])
 def alg5():
     # result_json = treebased_helper.get_runs()
     # print(result_json)
