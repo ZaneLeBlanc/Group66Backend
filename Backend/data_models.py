@@ -34,7 +34,7 @@ class TreeBased(Base):
     __tablename__ = 'TreeBased'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    run_date = Column(TIMESTAMP, server_default=func.now())
+    run_date = Column(DateTime(timezone=True), server_default=func.now())
     duration = Column(FLOAT)
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
