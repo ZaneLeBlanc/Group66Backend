@@ -180,6 +180,7 @@ def parse_to_json(result):
 
 #testing json
 
+# running this on front end for tree based test
 # {
 #     "model_req": {
 #         "dataset_path": "",
