@@ -172,7 +172,6 @@ json_ex = {
   }
  }
 
-#run(json_ex)
 
 #result format
 # results = {
@@ -186,5 +185,26 @@ json_ex = {
 #     }
 # }
 
-#run(json_ex)
-#get_runs()
+# running this on front end for lccde test
+# {
+#                 "model_req": {
+#                   "dataset_name": "",
+#                   "XGB": {
+#                     "n_estimators": "",
+#                     "max_depth": "",
+#                     "learning_rate": ""
+#                   },
+#                   "LightGBM": {
+#                     "num_iterations": "",
+#                     "max_depth": "",
+#                     "learning_rate": "",
+#                     "num_leaves": "",
+#                     "boosting_type": ""
+#                   },
+#                   "CatBoost": {
+#                     "n_estimators": "",
+#                     "max_depth": "",
+#                     "learning_rate": ""
+#                   }
+#                 }
+#               }
