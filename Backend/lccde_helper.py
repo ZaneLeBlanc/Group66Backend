@@ -34,7 +34,7 @@ def run(json_req):
     cb_params = json_req["model_req"]["CatBoost"]
 
     #run model
-    result = lccde.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
+    result = lccde.run_model('Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
     #print (result)
 
     #create json
