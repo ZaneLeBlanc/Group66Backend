@@ -16,7 +16,7 @@ default_params = {
     "DTree": {
       "max_depth": None,
       "min_samples_split": 2,
-      "splitter": "gini"
+      "splitter": "best"
     },
     "RTree": {
       "n_estimators": 100, 
@@ -26,7 +26,7 @@ default_params = {
     "ETree": { 
       "n_estimators": 100,
       "max_depth": None,
-      "min_samples_split": 2,
+      "min_samples_split": 2
     }
 }
 
