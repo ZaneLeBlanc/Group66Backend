@@ -54,8 +54,6 @@ def run(json_req):
     record(result, xgb_params, dtree_params, rtree_params, etree_params)
     
     return result_json
-    # return None
-    #return json result
 
 #fill the json will default parameters if they empty
 def default_fill(json_req, default):
@@ -174,9 +172,6 @@ def parse_to_json(result):
 #     "heatmap": "Path to Heatmap Image"
 #     }
 # }
-
-#run(json_ex)  
-#get_runs()
 
 #testing json
 
