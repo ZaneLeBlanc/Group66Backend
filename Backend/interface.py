@@ -61,7 +61,7 @@ def alg4():
     return jsonify(result_json)
     # pass
 
-@app.route('/retrievetree', methods=['PUT'])
+@app.route('/retrieveTree', methods=['GET'])
 def alg5():
     result_json = treebased_helper.get_runs()
     print(result_json)
