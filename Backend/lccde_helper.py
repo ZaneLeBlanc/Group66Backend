@@ -33,8 +33,11 @@ def run(json_req):
     lg_params = json_req["model_req"]["LightGBM"]
     cb_params = json_req["model_req"]["CatBoost"]
 
+    path = './Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
+    dataset_name = str(json_req["model_req"]["dataset_name"])
+    dataset_path = path + dataset_name
     #run model
-    result = lccde.run_model('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
+    result = lccde.run_model(dataset_path, xgb_params, lg_params, cb_params)
     #print (result)
 
     #create json
@@ -43,7 +46,7 @@ def run(json_req):
     #print(result_json)
 
     #store results
-    record(result, xgb_params, lg_params, cb_params)
+    record(result, xgb_params, lg_params, cb_params, dataset_name)
     
     return result_json
     #return json result
@@ -67,7 +70,7 @@ def default_fill(json_req, default):
 #get runs from db function
 def get_runs():
 
-    keys = ['id', 'execution_time', 'run_date', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
+    keys = ['id', 'run_date', 'dataset_name', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
     XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
     LG_keys = ['num_iterations', 'max_depth', 'learning_rate', 'num_leaves', 'boosting_type']
     CB_keys = ['n_estimators', 'max_depth', 'learning_rate']
@@ -109,7 +112,7 @@ def get_runs():
  
 
 #record in db function?
-def record(result, xgb_params, lg_params, cb_params):
+def record(result, xgb_params, lg_params, cb_params, dataset_name):
 
     connection = sqlite3.connect('test_DB.db')
     c = connection.cursor()
@@ -122,9 +125,9 @@ def record(result, xgb_params, lg_params, cb_params):
             record.append(model_params[param])
 
     record.append(datetime.datetime.now())
-    print(record)
+    record.append(dataset_name)
 
-    c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date, dataset_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     connection.commit()
 
     c.close()

@@ -12,6 +12,8 @@
 
 # %%
 import warnings
+
+from sklearn.calibration import LabelEncoder
 warnings.filterwarnings("ignore")
 
 # %%
@@ -37,23 +39,56 @@ def data_prep(data_path):
 
     # "./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv"
     df = pd.read_csv(data_path)
+    
+    if 'CICIDS2017_sample_km.csv' in data_path:
+        df.Label.value_counts()
+        # ## Split train set and test set
 
-    df.Label.value_counts()
-    # ## Split train set and test set
+        X = df.drop(['Label'],axis=1)
+        y = df['Label']
+        X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0) #shuffle=False
 
-    X = df.drop(['Label'],axis=1)
-    y = df['Label']
-    X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0) #shuffle=False
+        # ## SMOTE to solve class-imbalance
+        pd.Series(y_train).value_counts()
 
-    # ## SMOTE to solve class-imbalance
-    pd.Series(y_train).value_counts()
+        from imblearn.over_sampling import SMOTE
+        smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
 
-    from imblearn.over_sampling import SMOTE
-    smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
+        X_train, y_train = smote.fit_resample(X_train, y_train)
 
-    X_train, y_train = smote.fit_resample(X_train, y_train)
+        pd.Series(y_train).value_counts()
+    
+    elif 'CICIDS2017_sample.csv' in data_path:
+        numeric_features = df.dtypes[df.dtypes != 'object'].index
+        df[numeric_features] = df[numeric_features].apply(
+        lambda x: (x - x.min()) / (x.max()-x.min()))
 
-    pd.Series(y_train).value_counts()
+        # Fill empty values by 0
+        df = df.fillna(0)
+
+        labelencoder = LabelEncoder()
+        df.iloc[:, -1] = labelencoder.fit_transform(df.iloc[:, -1])
+        X = df.drop(['Label'],axis=1)
+        y = df['Label']
+        #y = df.iloc[:, -1].values.reshape(-1,1)
+        #y=np.ravel(y)
+        X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0,stratify = y)
+
+        X_train.shape
+
+        pd.Series(y_train).value_counts()
+
+        from imblearn.over_sampling import SMOTE
+        smote=SMOTE(n_jobs=-1,sampling_strategy={4:1500}) # Create 1500 samples for the minority class "4"
+
+        y_train = y_train.astype(int)
+        #y_train = np.array(y_train)
+        y_test = y_test.astype(int)
+        #y_test = np.array(y_test)
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+
+        pd.Series(y_train).value_counts()
+        
     return X_train, X_test, y_train, y_test
 
 

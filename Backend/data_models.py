@@ -11,6 +11,7 @@ class LCCDE(Base):
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     run_date = Column(DateTime, default= datetime.datetime.now())
+    dataset_name = Column(String)
     duration = Column(FLOAT)
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
