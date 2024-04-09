@@ -89,7 +89,7 @@ def get_runs():
         row_dict = {}
         for i, key in enumerate(keys):
             row_dict[key] = r[i]
-        idx_offset += len(keys) - 1   
+        idx_offset += len(keys) 
         row_dict['XGB'] = {}
         for i, key in enumerate(XGB_keys):
             row_dict['XGB'][key] = r[i + idx_offset]
