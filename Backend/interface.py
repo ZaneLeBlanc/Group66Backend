@@ -14,6 +14,10 @@
 # to start it up you do 
 # 'python <filename>.py'
 
+# TO RUN:
+# navigate to Backend folder
+# run: python interface.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 app = Flask(__name__)
@@ -34,9 +38,9 @@ def run_python_code():
 @app.route('/runLccde', methods=['PUT'])
 def alg1():
     #in postman del .get('code')
-    params = request.json
+    params = request.json.get('code')
     #jsonify incoming
-    #params = json.loads(params)
+    params = json.loads(params)
     result_json = lccde_helper.run(params)
 
     return jsonify(result_json)
@@ -63,11 +67,11 @@ def alg4():
 
 @app.route('/retrieveTree', methods=['GET'])
 def alg5():
-    result_json = treebased_helper.get_runs()
-    print(result_json)
-    return jsonify(result_json)
-    # pass
-
+    # result_json = treebased_helper.get_runs()
+    # print(result_json)
+    # return jsonify(result_json)
+    pass
 
 if __name__ == '__main__':
     app.run(debug=True)
+

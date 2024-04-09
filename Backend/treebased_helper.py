@@ -54,8 +54,6 @@ def run(json_req):
     record(result, xgb_params, dtree_params, rtree_params, etree_params)
     
     return result_json
-    # return None
-    #return json result
 
 #fill the json will default parameters if they empty
 def default_fill(json_req, default):
@@ -175,11 +173,9 @@ def parse_to_json(result):
 #     }
 # }
 
-#run(json_ex)  
-#get_runs()
-
 #testing json
 
+# running this on front end for tree based test
 # {
 #     "model_req": {
 #         "dataset_path": "",
