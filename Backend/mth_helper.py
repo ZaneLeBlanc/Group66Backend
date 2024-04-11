@@ -20,10 +20,10 @@ def run(json_req):
     hpo_max_evals = json_req["model_req"]["hpo_max_evals"]
 
     path = './Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
-    dataset_name = str(json_req["model_req"]["dataset_name"])
-    dataset_path = path + dataset_name
+    dataset_path = str(json_req["model_req"]["dataset_path"])
+    dataset = path + dataset_path
     #run model
-    result = mth.run_model(dataset_path, train_split, max_features, hpo_max_evals)
+    result = mth.run_model(dataset, train_split, max_features, hpo_max_evals)
     #print (result)
 
     #create json
@@ -32,7 +32,7 @@ def run(json_req):
     #print(result_json)
 
     #store results
-    record(result, train_split, max_features, hpo_max_evals, dataset_name)
+    record(result, train_split, max_features, hpo_max_evals, dataset_path)
     
     return result_json
     #return json result
@@ -52,7 +52,7 @@ def default_fill(json_req, default):
 #get runs from db function
 def get_runs():
 
-    keys = ['id', 'run_date', 'dataset_name', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap', 'training_allocation', 'max_features', 'hpo_max_evals']
+    keys = ['id', 'run_date', 'dataset_path', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap', 'training_allocation', 'max_features', 'hpo_max_evals']
 
     connection = sqlite3.connect('test_DB.db')
     c = connection.cursor()
@@ -77,7 +77,7 @@ def get_runs():
  
 
 #record in db function?
-def record(result, train_split, max_features, hpo_max_evals, dataset_name):
+def record(result, train_split, max_features, hpo_max_evals, dataset_path):
 
     connection = sqlite3.connect('test_DB.db')
     c = connection.cursor()
@@ -89,9 +89,9 @@ def record(result, train_split, max_features, hpo_max_evals, dataset_name):
         record.append(param)
 
     record.append(datetime.datetime.now())
-    record.append(dataset_name)
+    record.append(dataset_path)
 
-    c.execute("INSERT INTO mth (duration, accuracy, prec, recall, f1_score, heatmap_data, train_split, max_features, hpo_max_evals, run_date, dataset_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    c.execute("INSERT INTO mth (duration, accuracy, prec, recall, f1_score, heatmap_data, train_split, max_features, hpo_max_evals, run_date, dataset_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     connection.commit()
 
     c.close()
@@ -142,7 +142,7 @@ json_ex = {
  #running this on front end for lccde test
 test = {
     "model_req": {
-        "dataset_name": "CICIDS2017_sample_km.csv",
+        "dataset_path": "CICIDS2017_sample_km.csv",
         "training_allocation" : "",
         "max_features" : "",
         "hpo_max_evals" : ""

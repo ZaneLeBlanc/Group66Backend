@@ -60,12 +60,12 @@ def alg3():
     return jsonify(result_json)
 
 @app.route('/retrieveMth', methods=['GET'])
-def alg2():
+def alg4():
     result_json = mth_helper.get_runs()
     return jsonify(result_json)
 
 @app.route('/runTree', methods=['PUT'])
-def alg4():
+def alg5():
     params = request.json.get('code')
     params = json.loads(params)
     result_json = treebased_helper.run(params)
@@ -74,7 +74,7 @@ def alg4():
     # pass
 
 @app.route('/retrieveTree', methods=['GET'])
-def alg5():
+def alg6():
     # result_json = treebased_helper.get_runs()
     # print(result_json)
     # return jsonify(result_json)
