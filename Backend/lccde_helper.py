@@ -67,7 +67,7 @@ def default_fill(json_req, default):
 #get runs from db function
 def get_runs():
 
-    keys = ['id', 'execution_time', 'run_date', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
+    keys = ['id', 'run_date', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
     XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
     LG_keys = ['num_iterations', 'max_depth', 'learning_rate', 'num_leaves', 'boosting_type']
     CB_keys = ['n_estimators', 'max_depth', 'learning_rate']
@@ -89,7 +89,7 @@ def get_runs():
         row_dict = {}
         for i, key in enumerate(keys):
             row_dict[key] = r[i]
-        idx_offset += len(keys) - 1   
+        idx_offset += len(keys) 
         row_dict['XGB'] = {}
         for i, key in enumerate(XGB_keys):
             row_dict['XGB'][key] = r[i + idx_offset]
