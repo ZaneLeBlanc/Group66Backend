@@ -122,34 +122,42 @@ from xgboost import plot_importance
 #  ### split train set and test set
 
 
-def preprocessing():
+def preprocessing(dataset_path, train_split):
     # Read the sampled dataset
-    df=pd.read_csv('./Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv')
+
+    df = pd.read_csv(dataset_path)
     features = df.dtypes[df.dtypes != 'object'].index
 
+    if 'CICIDS2017_sample_km.csv' in dataset_path:
+        X = df.drop(['Label'],axis=1).values
+        y = df.iloc[:, -1].values.reshape(-1,1)
+        y=np.ravel(y)
 
+        X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = train_split, test_size = (1 - train_split), random_state = 0,stratify = y)
+        
+    elif 'CICIDS2017_sample.csv' in dataset_path:
+        numeric_features = df.dtypes[df.dtypes != 'object'].index
+        df[numeric_features] = df[numeric_features].apply(
+        lambda x: (x - x.min()) / (x.max()-x.min()))
 
-    X = df.drop(['Label'],axis=1).values
-    y = df.iloc[:, -1].values.reshape(-1,1)
-    y=np.ravel(y)
+        # Fill empty values by 0
+        df = df.fillna(0)
 
+        labelencoder = LabelEncoder()
+        df.iloc[:, -1] = labelencoder.fit_transform(df.iloc[:, -1])
+        X = df.drop(['Label'],axis=1)
+        y = df.iloc[:, -1].values.reshape(-1,1)
+        y=np.ravel(y)
 
+        X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0,stratify = y)
 
-    X_train, X_test, y_train, y_test = train_test_split(X,y, train_size = 0.8, test_size = 0.2, random_state = 0,stratify = y)
-    
-
-
+        y_train = y_train.astype(int)
+        X_train = X_train.values
 
 #  ## Feature engineering
-
-
 #  ### Feature selection by information gain
-
-
     from sklearn.feature_selection import mutual_info_classif
     importances = mutual_info_classif(X_train, y_train)
-
-
 
     # calculate the sum of importance scores
     f_list = sorted(zip(map(lambda x: round(x, 4), importances), features), reverse=True)
@@ -158,8 +166,6 @@ def preprocessing():
     for i in range(0, len(f_list)):
         Sum = Sum + f_list[i][0]
         fs.append(f_list[i][1])
-
-
 
     # select the important features from top to bottom until the accumulated importance reaches 90%
     f_list2 = sorted(zip(map(lambda x: round(x, 4), importances/Sum), features), reverse=True)
@@ -171,78 +177,46 @@ def preprocessing():
         if Sum2>=0.9:
             break        
 
-
-
     X_fs = df[fs].values
-
-
-
     X_fs.shape
 
-
-
     #  ### Feature selection by Fast Correlation Based Filter (FCBF)
-    # 
     #  The module is imported from the GitHub repo: https://github.com/SantiagoEG/FCBF_module
-
-
     from FCBF_module.FCBF_module import FCBF, FCBFK, FCBFiP, get_i
     fcbf = FCBFK(k = 20)
     #fcbf.fit(X_fs, y)
     X_fss = fcbf.fit_transform(X_fs,y)
-
-
-
-
-
-
-
     X_fss.shape
 
-
-
     #  ### Re-split train & test sets after feature selection
-
-
-    X_train, X_test, y_train, y_test = train_test_split(X_fss,y, train_size = 0.8, test_size = 0.2, random_state = 0,stratify = y)
-
-
-
+    X_train, X_test, y_train, y_test = train_test_split(X_fss,y, train_size = train_split, test_size = (1 - train_split), random_state = 0,stratify = y)
     X_train.shape
-
-
 
     pd.Series(y_train).value_counts()
 
-
-
-    #  ### SMOTE to solve class-imbalance
-
-
     from imblearn.over_sampling import SMOTE
-    smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
-
+    #  ### SMOTE to solve class-imbalance
+    if 'CICIDS2017_sample_km.csv' in dataset_path:
+        smote=SMOTE(n_jobs=-1,sampling_strategy={2:1000,4:1000})
+    
+    elif 'CICIDS2017_sample.csv' in dataset_path:
+        smote=SMOTE(n_jobs=-1,sampling_strategy={4:1500})#####
+        y_train = y_train.astype(int)
+        y_test = y_test.astype(int)
 
     X_train, y_train = smote.fit_resample(X_train, y_train)
 
-
-
     pd.Series(y_train).value_counts()
 
+    print('**Preprocessing Complete**')
     return X_train, X_test, y_train, y_test
 
 
 
 #  ## Machine learning model training
-
-
 #  ### Training four base learners: decision tree, random forest, extra trees, XGBoost
-
-
 #  #### Apply XGBoost
-
-
-def train_models(X_train, X_test, y_train, y_test):
+def train_models(X_train, X_test, y_train, y_test, max_features, hpo_max_evals):
     #time models
     global start_time
     start_time = time.time()
@@ -296,12 +270,15 @@ def train_models(X_train, X_test, y_train, y_test):
     best = fmin(fn=objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=20)
+                max_evals=hpo_max_evals)
     print("XGBoost: Hyperopt estimated optimum {}".format(best))
 
+    best['n_estimators'] = int(best['n_estimators'])
+    best['max_depth'] = int(best['max_depth'])
+    best['learning_rate'] = abs(best['learning_rate'])
 
-
-    xg = xgb.XGBClassifier(learning_rate= 0.7340229699980686, n_estimators = 70, max_depth = 14)
+    #xg = xgb.XGBClassifier(learning_rate= 0.7340229699980686, n_estimators = 70, max_depth = 14)
+    xg = xgb.XGBClassifier(**best)
     xg.fit(X_train,y_train)
     xg_score=xg.score(X_test,y_test)
     y_predict=xg.predict(X_test)
@@ -375,7 +352,7 @@ def train_models(X_train, X_test, y_train, y_test):
     space = {
         'n_estimators': hp.quniform('n_estimators', 10, 200, 1),
         'max_depth': hp.quniform('max_depth', 5, 50, 1),
-        "max_features":hp.quniform('max_features', 1, 20, 1),
+        "max_features":hp.quniform('max_features', 1, max_features, 1),
         "min_samples_split":hp.quniform('min_samples_split',2,11,1),
         "min_samples_leaf":hp.quniform('min_samples_leaf',1,11,1),
         "criterion":hp.choice('criterion',['gini','entropy'])
@@ -384,12 +361,18 @@ def train_models(X_train, X_test, y_train, y_test):
     best = fmin(fn=objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=20)
+                max_evals=hpo_max_evals)
     print("Random Forest: Hyperopt estimated optimum {}".format(best))
 
+    best['n_estimators'] = int(best['n_estimators'])
+    best['max_depth'] = int(best['max_depth'])
+    best['max_features'] = int(best['max_features'])
+    best['min_samples_split'] = int(best['min_samples_split'])
+    best['min_samples_leaf'] = int(best['min_samples_leaf'])
+    best['criterion'] = 'gini' if best['criterion'] == 0 else 'entropy'
 
-
-    rf_hpo = RandomForestClassifier(n_estimators = 71, min_samples_leaf = 1, max_depth = 46, min_samples_split = 9, max_features = 20, criterion = 'entropy')
+    #rf_hpo = RandomForestClassifier(n_estimators = 71, min_samples_leaf = 1, max_depth = 46, min_samples_split = 9, max_features = 20, criterion = 'entropy')
+    rf_hpo = RandomForestClassifier(**best)
     rf_hpo.fit(X_train,y_train)
     rf_score=rf_hpo.score(X_test,y_test)
     y_predict=rf_hpo.predict(X_test)
@@ -461,7 +444,7 @@ def train_models(X_train, X_test, y_train, y_test):
     # Define the hyperparameter configuration space
     space = {
         'max_depth': hp.quniform('max_depth', 5, 50, 1),
-        "max_features":hp.quniform('max_features', 1, 20, 1),
+        "max_features":hp.quniform('max_features', 1, max_features, 1),
         "min_samples_split":hp.quniform('min_samples_split',2,11,1),
         "min_samples_leaf":hp.quniform('min_samples_leaf',1,11,1),
         "criterion":hp.choice('criterion',['gini','entropy'])
@@ -470,12 +453,17 @@ def train_models(X_train, X_test, y_train, y_test):
     best = fmin(fn=objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=50)
+                max_evals=hpo_max_evals)
     print("Decision tree: Hyperopt estimated optimum {}".format(best))
 
+    best['max_depth'] = int(best['max_depth'])
+    best['max_features'] = int(best['max_features'])
+    best['min_samples_split'] = int(best['min_samples_split'])
+    best['min_samples_leaf'] = int(best['min_samples_leaf'])
+    best['criterion'] = 'gini' if best['criterion'] == 0 else 'entropy'
 
-
-    dt_hpo = DecisionTreeClassifier(min_samples_leaf = 2, max_depth = 47, min_samples_split = 3, max_features = 19, criterion = 'gini')
+    #dt_hpo = DecisionTreeClassifier(min_samples_leaf = 2, max_depth = 47, min_samples_split = 3, max_features = 19, criterion = 'gini')
+    dt_hpo = DecisionTreeClassifier(**best)
     dt_hpo.fit(X_train,y_train)
     dt_score=dt_hpo.score(X_test,y_test)
     y_predict=dt_hpo.predict(X_test)
@@ -549,7 +537,7 @@ def train_models(X_train, X_test, y_train, y_test):
     space = {
         'n_estimators': hp.quniform('n_estimators', 10, 200, 1),
         'max_depth': hp.quniform('max_depth', 5, 50, 1),
-        "max_features":hp.quniform('max_features', 1, 20, 1),
+        "max_features":hp.quniform('max_features', 1, max_features, 1),
         "min_samples_split":hp.quniform('min_samples_split',2,11,1),
         "min_samples_leaf":hp.quniform('min_samples_leaf',1,11,1),
         "criterion":hp.choice('criterion',['gini','entropy'])
@@ -558,12 +546,18 @@ def train_models(X_train, X_test, y_train, y_test):
     best = fmin(fn=objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=20)
+                max_evals=hpo_max_evals)
     print("Random Forest: Hyperopt estimated optimum {}".format(best))
 
+    best['n_estimators'] = int(best['n_estimators'])
+    best['max_depth'] = int(best['max_depth'])
+    best['max_features'] = int(best['max_features'])
+    best['min_samples_split'] = int(best['min_samples_split'])
+    best['min_samples_leaf'] = int(best['min_samples_leaf'])
+    best['criterion'] = 'gini' if best['criterion'] == 0 else 'entropy'
 
-
-    et_hpo = ExtraTreesClassifier(n_estimators = 53, min_samples_leaf = 1, max_depth = 31, min_samples_split = 5, max_features = 20, criterion = 'entropy')
+    #et_hpo = ExtraTreesClassifier(n_estimators = 53, min_samples_leaf = 1, max_depth = 31, min_samples_split = 5, max_features = 20, criterion = 'entropy')
+    et_hpo = ExtraTreesClassifier(**best)
     et_hpo.fit(X_train,y_train) 
     et_score=et_hpo.score(X_test,y_test)
     y_predict=et_hpo.predict(X_test)
@@ -662,11 +656,16 @@ def train_models(X_train, X_test, y_train, y_test):
     best = fmin(fn=objective,
                 space=space,
                 algo=tpe.suggest,
-                max_evals=20)
+                max_evals=hpo_max_evals)
     print("XGBoost: Hyperopt estimated optimum {}".format(best))
 
+    best['n_estimators'] = int(best['n_estimators'])
+    best['max_depth'] = int(best['max_depth'])
+    best['learning_rate'] = abs(best['learning_rate'])
+
     # final stacked
-    xg = xgb.XGBClassifier(learning_rate= 0.19229249758051492, n_estimators = 30, max_depth = 36)
+    #xg = xgb.XGBClassifier(learning_rate= 0.19229249758051492, n_estimators = 30, max_depth = 36)
+    xg = xgb.XGBClassifier(**best)
     xg.fit(x_train,y_train)
     xg_score=xg.score(x_test,y_test)
     y_predict=xg.predict(x_test)
@@ -1103,11 +1102,11 @@ def Anomaly_IDS(X_train, X_test, y_train, y_test,n,b=100):
 #  95% of the code has been shared, and the remaining 5% is retained for future extension.
 #  Thank you for your interest and more details are in the paper.
 
-def run_model():
-    X_train, X_test, y_train, y_test = preprocessing()
-    acc, prec, recall, f1_score, cm = train_models(X_train, X_test, y_train, y_test)
+def run_model(dataset_path, train_split, max_features, hpo_max_evals):
+    X_train, X_test, y_train, y_test = preprocessing(dataset_path, train_split)
+    acc, prec, recall, f1_score, cm = train_models(X_train, X_test, y_train, y_test, max_features, hpo_max_evals)
     end_time = time.time()
     run_model_time = end_time - start_time
-    return acc, prec, recall, f1_score, cm
+    return (str(run_model_time), acc, prec, recall, f1_score, str(cm.tolist()))
 
-run_model()
+#run_model()

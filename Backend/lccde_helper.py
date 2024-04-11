@@ -134,8 +134,8 @@ def record(result, xgb_params, lg_params, cb_params, dataset_name):
     connection.close()
 
 #read from db function? how are we searching
-def read():
-    pass
+# def read():
+#     pass
 
 #decode/parse json function?
 def parse_to_json(result):
