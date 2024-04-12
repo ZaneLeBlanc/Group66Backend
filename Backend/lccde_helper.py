@@ -38,12 +38,9 @@ def run(json_req):
     dataset = path + dataset_path
     #run model
     result = lccde.run_model(dataset, xgb_params, lg_params, cb_params)
-    #print (result)
 
     #create json
     result_json = parse_to_json(result)
-    #print('results')
-    #print(result_json)
 
     #store results
     record(result, xgb_params, lg_params, cb_params, dataset_path)
@@ -65,7 +62,7 @@ def default_fill(json_req, default):
                 json_model[param] = default_val
         json_req["model_req"][model] = json_model
     
-    #print(json) #after
+    print('**Params with defaults**\n' + str(json_req)) #after
 
 #get runs from db function
 def get_runs():
@@ -96,11 +93,11 @@ def get_runs():
         row_dict['XGB'] = {}
         for i, key in enumerate(XGB_keys):
             row_dict['XGB'][key] = r[i + idx_offset]
-        idx_offset += len(XGB_keys) - 1 
+        idx_offset += len(XGB_keys) 
         row_dict['LightGBM'] = {}
         for i, key in enumerate(LG_keys):
             row_dict['LightGBM'][key] = r[i + idx_offset]
-        idx_offset += len(LG_keys) - 1 
+        idx_offset += len(LG_keys)
         row_dict['CatBoost'] = {}
         for i, key in enumerate(CB_keys):
             row_dict['CatBoost'][key] = r[i + idx_offset]
@@ -126,6 +123,7 @@ def record(result, xgb_params, lg_params, cb_params, dataset_path):
 
     record.append(datetime.datetime.now())
     record.append(dataset_path)
+    print(record)
 
     c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date, dataset_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     connection.commit()
