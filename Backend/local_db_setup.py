@@ -3,7 +3,6 @@ from db_session import engine
 from sqlalchemy import event, DDL
 from data_models import Base
 
-Base.metadata.create_all(engine)
 
 # Event Triggers
 @event.listens_for(Base.metadata, 'after_create')
@@ -31,3 +30,5 @@ def make_triggers(target, connection, **kw):
 
     for ddl in t_ddls:
         connection.execute(ddl)
+
+Base.metadata.create_all(engine)
