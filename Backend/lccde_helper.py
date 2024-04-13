@@ -33,17 +33,17 @@ def run(json_req):
     lg_params = json_req["model_req"]["LightGBM"]
     cb_params = json_req["model_req"]["CatBoost"]
 
+    path = './Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
+    dataset_path = str(json_req["model_req"]["dataset_path"])
+    dataset = path + dataset_path
     #run model
-    result = lccde.run_model('Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample_km.csv', xgb_params, lg_params, cb_params)
-    #print (result)
+    result = lccde.run_model(dataset, xgb_params, lg_params, cb_params)
 
     #create json
     result_json = parse_to_json(result)
-    #print('results')
-    #print(result_json)
 
     #store results
-    record(result, xgb_params, lg_params, cb_params)
+    record(result, xgb_params, lg_params, cb_params, dataset_path)
     
     return result_json
     #return json result
@@ -62,12 +62,12 @@ def default_fill(json_req, default):
                 json_model[param] = default_val
         json_req["model_req"][model] = json_model
     
-    #print(json) #after
+    print('**Params with defaults**\n' + str(json_req)) #after
 
 #get runs from db function
 def get_runs():
 
-    keys = ['id', 'run_date', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
+    keys = ['id', 'run_date', 'dataset_path', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
     XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
     LG_keys = ['num_iterations', 'max_depth', 'learning_rate', 'num_leaves', 'boosting_type']
     CB_keys = ['n_estimators', 'max_depth', 'learning_rate']
@@ -93,11 +93,11 @@ def get_runs():
         row_dict['XGB'] = {}
         for i, key in enumerate(XGB_keys):
             row_dict['XGB'][key] = r[i + idx_offset]
-        idx_offset += len(XGB_keys) - 1 
+        idx_offset += len(XGB_keys) 
         row_dict['LightGBM'] = {}
         for i, key in enumerate(LG_keys):
             row_dict['LightGBM'][key] = r[i + idx_offset]
-        idx_offset += len(LG_keys) - 1 
+        idx_offset += len(LG_keys)
         row_dict['CatBoost'] = {}
         for i, key in enumerate(CB_keys):
             row_dict['CatBoost'][key] = r[i + idx_offset]
@@ -109,7 +109,7 @@ def get_runs():
  
 
 #record in db function?
-def record(result, xgb_params, lg_params, cb_params):
+def record(result, xgb_params, lg_params, cb_params, dataset_path):
 
     connection = sqlite3.connect('test_DB.db')
     c = connection.cursor()
@@ -122,17 +122,18 @@ def record(result, xgb_params, lg_params, cb_params):
             record.append(model_params[param])
 
     record.append(datetime.datetime.now())
+    record.append(dataset_path)
     print(record)
 
-    c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
+    c.execute("INSERT INTO LCCDE (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_n_estimators, xgb_max_depth, xgb_learning_rate, lg_num_iterations, lg_max_depth, lg_learning_rate, lg_num_leaves, lg_boosting_type, cb_n_estimators, cb_max_depth, cb_learning_rate, run_date, dataset_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (record))
     connection.commit()
 
     c.close()
     connection.close()
 
 #read from db function? how are we searching
-def read():
-    pass
+# def read():
+#     pass
 
 #decode/parse json function?
 def parse_to_json(result):

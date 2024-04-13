@@ -11,6 +11,7 @@ class LCCDE(Base):
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     run_date = Column(DateTime, default= datetime.datetime.now())
+    dataset_path = Column(String)
     duration = Column(FLOAT)
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
@@ -61,12 +62,18 @@ class MTH(Base):
     __tablename__ = 'mth'
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
-    duration = Column(FLOAT) 
     run_date = Column(DateTime, default= datetime.datetime.now())
+    dataset_path = Column(String)
+    duration = Column(FLOAT)
     accuracy = Column(FLOAT)
     prec = Column(FLOAT)
     recall = Column(FLOAT)
     f1_score = Column(FLOAT)
+    heatmap_data = Column(String)
+    #params
+    train_split = Column(FLOAT)
+    max_features = Column(Integer)
+    hpo_max_evals = Column(Integer)
 
 # Create History table for all runs
         #go back and create link between this table and others
