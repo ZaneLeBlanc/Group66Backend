@@ -33,9 +33,13 @@ def run(json_req):
     lg_params = json_req["model_req"]["LightGBM"]
     cb_params = json_req["model_req"]["CatBoost"]
 
-    path = './Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
+    path = '../Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
     dataset_path = str(json_req["model_req"]["dataset_path"])
-    dataset = path + dataset_path
+    #dataset = path + dataset_path
+
+    #zane-temp dataset fix:
+    dataset = path + "CICIDS2017_sample.csv"
+
     #run model
     result = lccde.run_model(dataset, xgb_params, lg_params, cb_params)
 
