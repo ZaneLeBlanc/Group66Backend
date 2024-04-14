@@ -33,6 +33,7 @@ default_params = {
 #regular run function
 def run(json_req):
     print (json_req)
+
     #decode/parse incoming json
     xgb_params = json_req["model_req"]["XGB"]
     dtree_params = json_req["model_req"]["DTree"]
@@ -40,18 +41,23 @@ def run(json_req):
     etree_params = json_req["model_req"]["ETree"]
 
     default_fill(json_req, default_params)
+    
+    #add functionality for different datasets
+    path = './Backend/Intrusion-Detection-System-Using-Machine-Learning-main/data/'
+    dataset_path = str(json_req["model_req"]["dataset_path"])
+    dataset = path + dataset_path
 
     #run model
-    result = treebased.run_model('Intrusion-Detection-System-Using-Machine-Learning-main/data/CICIDS2017_sample.csv', xgb_params, dtree_params, rtree_params, etree_params)
-    print(result)
+    result = treebased.run_model(dataset, xgb_params, dtree_params, rtree_params, etree_params)
+    # print(result)
 
     #create json
     result_json = parse_to_json(result)
-    print('results')
-    print(result_json)
+    # print('results')
+    # print(result_json)
 
     #store results
-    record(result, xgb_params, dtree_params, rtree_params, etree_params)
+    record(result, xgb_params, dtree_params, rtree_params, etree_params, dataset_path)
     
     return result_json
 
@@ -74,7 +80,7 @@ def default_fill(json_req, default):
 #get runs from db function
 def get_runs():
 
-    keys = ['id', 'execution_time', 'run_date', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
+    keys = ['id', 'run_date', 'dataset_path', 'execution_time', 'accuracy', 'precision', 'recall', 'f1', 'heatmap']
     XGB_keys = ['n_estimators', 'max_depth', 'learning_rate']
     DT_keys = ['max_depth', 'min_samples_split', 'splitter']
     RT_keys = ['n_estimators', 'max_depth', 'min_samples_split']
@@ -120,7 +126,7 @@ def get_runs():
 
 
 #record in db function?
-def record(result, xgb_params, dtree_params, rtree_params, etree_params):
+def record(result, xgb_params, dtree_params, rtree_params, etree_params, dataset_path):
 
     with Session.begin() as session:
         param_lists = [xgb_params, dtree_params, rtree_params, etree_params]
@@ -130,19 +136,20 @@ def record(result, xgb_params, dtree_params, rtree_params, etree_params):
             for param in model_params:
                 record.append(model_params[param])
 
+        record.append(dataset_path)
         rec_str = str(record)[1:-1]
         rec_str = rec_str.replace("None", "NULL")
 
-        query = f'INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples) VALUES ({rec_str})'
+        query = f'INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples, dataset_path) VALUES ({rec_str})'
         print(query)
         session.execute(text(query))
 
         session.commit()
         session.close()
 
-#read from db function? how are we searching
-def read():
-    pass
+# #read from db function? how are we searching
+# def read():
+#     pass
 
 #decode/parse json function?
 def parse_to_json(result):
@@ -178,7 +185,7 @@ def parse_to_json(result):
 # running this on front end for tree based test
 # {
 #     "model_req": {
-#         "dataset_path": "",
+#         "dataset_path": "CICIDS2017_sample.csv",
 #         "XGB": {
 #       "n_estimators": 100,
 #       "max_depth": 6,

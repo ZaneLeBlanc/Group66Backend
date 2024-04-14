@@ -75,10 +75,10 @@ def alg5():
 
 @app.route('/retrieveTree', methods=['GET'])
 def alg6():
-    # result_json = treebased_helper.get_runs()
+    result_json = treebased_helper.get_runs()
     # print(result_json)
-    # return jsonify(result_json)
-    pass
+    return jsonify(result_json)
+    # pass
 
 if __name__ == '__main__':
     app.run(debug=True)
