@@ -4,8 +4,8 @@ import treebased
 import json
 import sqlalchemy
 from db_session import Session, engine
-from data_models import TreeBased
-from sqlalchemy import text
+from data_models import TreeBased, LCCDE
+from sqlalchemy import text, select
 
 default_params = {
     "XGB": {
@@ -86,41 +86,46 @@ def get_runs():
     RT_keys = ['n_estimators', 'max_depth', 'min_samples_split']
     ET_keys = ['n_estimators', 'max_depth', 'min_samples_split']
 
-    connection = sqlite3.connect('test_DB.db')
-    c = connection.cursor()
+    with Session.begin() as session:
+        rows_dict = { "rows" : [] }
 
-    c.execute("SELECT * FROM TreeBased")
-    rows = c.fetchall()
+        for class_instance in session.query(TreeBased).all():
+            inst = vars(class_instance)
+            del inst[list(inst)[0]]
+            r = tuple(list(inst.values()))
+            # print(r)
+            idx_offset = 0
+            row_dict = {}
+            # print(list(enumerate(keys)))
+            for i, key in enumerate(keys):
+                row_dict[key] = r[i]
+            idx_offset += len(keys) - 1 
+            print(row_dict)  
+            row_dict['XGB'] = {}
+            for i, key in enumerate(XGB_keys):
+                row_dict['XGB'][key] = r[i + idx_offset]
+            idx_offset += len(XGB_keys) - 1 
+            print(row_dict) 
+            row_dict['DT_keys'] = {}
+            for i, key in enumerate(DT_keys):
+                row_dict['DT_keys'][key] = r[i + idx_offset]
+            idx_offset += len(DT_keys) - 1 
+            print(row_dict) 
+            # print(list(enumerate(RT_keys)))
+            row_dict['RT_keys'] = {}
+            for i, key in enumerate(RT_keys):
+                print(i, key)
+                row_dict['RT_keys'][key] = r[i + idx_offset]
+            idx_offset += len(RT_keys) - 1 
+            print(row_dict) 
+            row_dict['ET_keys'] = {}
+            for i, key in enumerate(ET_keys):
+                row_dict['ET_keys'][key] = r[i + idx_offset]
+            idx_offset += len(ET_keys) - 1 
+            print(row_dict) 
+            rows_dict["rows"].append(row_dict)
+        session.close()
 
-    c.close()
-    connection.close()
-    #parse json
-    
-    rows_dict = { "rows" : [] }
-
-    for r in rows:
-        idx_offset = 0
-        row_dict = {}
-        for i, key in enumerate(keys):
-            row_dict[key] = r[i]
-        idx_offset += len(keys) - 1   
-        row_dict['XGB'] = {}
-        for i, key in enumerate(XGB_keys):
-            row_dict['XGB'][key] = r[i + idx_offset]
-        idx_offset += len(XGB_keys) - 1 
-        row_dict['DT_keys'] = {}
-        for i, key in enumerate(DT_keys):
-            row_dict['DT_keys'][key] = r[i + idx_offset]
-        idx_offset += len(DT_keys) - 1 
-        for i, key in enumerate(RT_keys):
-            row_dict['RT_keys'][key] = r[i + idx_offset]
-        idx_offset += len(RT_keys) - 1 
-        for i, key in enumerate(ET_keys):
-            row_dict['ET_keys'][key] = r[i + idx_offset]
-        idx_offset += len(ET_keys) - 1 
-        rows_dict["rows"].append(row_dict)
-
-    #print(rows_dict)
     json_rows = json.dumps(rows_dict)
     return json_rows
 
