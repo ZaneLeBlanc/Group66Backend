@@ -58,11 +58,21 @@ def default_fill(json_req, default):
             if isinstance(json_model[param], str):
                 if json_model[param].isnumeric():
                     json_model[param] = int(json_model[param])
+                if isfloat(json_model[param]):
+                    json_model[param] = float(json_model[param])
             if not json_model[param]:
                 json_model[param] = default_val
         json_req["model_req"][model] = json_model
     
     print('**Params with defaults**\n' + str(json_req)) #after
+
+def isfloat(str):
+    try:
+        if float(str).is_integer():
+            return False
+        return True
+    except ValueError:
+        return False
 
 #get runs from db function
 def get_runs():
