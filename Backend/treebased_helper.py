@@ -141,11 +141,13 @@ def record(result, xgb_params, dtree_params, rtree_params, etree_params, dataset
             for param in model_params:
                 record.append(model_params[param])
 
+        now = datetime.now()
+        record.append(now.strftime("%Y-%m-%d %H:%M:%S.%f"))
         record.append(dataset_path)
         rec_str = str(record)[1:-1]
         rec_str = rec_str.replace("None", "NULL")
 
-        query = f'INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples, dataset_path) VALUES ({rec_str})'
+        query = f'INSERT INTO TreeBased (duration, accuracy, prec, recall, f1_score, heatmap_data, xgb_estimators, xgb_max_depth, xgb_learning_rate, dtree_max_depth, dtree_min_samples, dtree_splitter, rtree_estimators, rtree_max_depth, rtree_min_samples, etree_estimators, etree_max_depth, etree_min_samples, run_date, dataset_path) VALUES ({rec_str})'
         print(query)
         session.execute(text(query))
 
