@@ -36,7 +36,8 @@ class TreeBased(Base):
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     # run_date = Column(DateTime(timezone=True), server_default=func.now())
-    run_date = Column(DateTime, default= datetime.datetime.now())
+    # run_date = Column(DateTime, default= datetime.datetime.now())
+    run_date = Column(String)
     dataset_path = Column(String)
     duration = Column(FLOAT)
     accuracy = Column(FLOAT)

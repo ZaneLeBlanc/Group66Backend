@@ -5,7 +5,7 @@ import json
 import sqlalchemy
 from db_session import Session, engine
 from data_models import TreeBased, LCCDE
-from sqlalchemy import text, select
+from sqlalchemy import text, select, desc
 
 default_params = {
     "XGB": {
@@ -90,40 +90,72 @@ def get_runs():
         rows_dict = { "rows" : [] }
 
         for class_instance in session.query(TreeBased).all():
+            # print(vars(class_instance))
             inst = vars(class_instance)
             del inst[list(inst)[0]]
-            r = tuple(list(inst.values()))
+            # print(inst)
+            # r = tuple(list(inst.values()))
             # print(r)
-            idx_offset = 0
+    #         idx_offset = 0
             row_dict = {}
-            # print(list(enumerate(keys)))
-            for i, key in enumerate(keys):
-                row_dict[key] = r[i]
-            idx_offset += len(keys) - 1 
-            print(row_dict)  
+            row_dict['id'] = class_instance.run_id
+            row_dict['run_date'] = class_instance.run_date
+            row_dict['dataset_path'] = class_instance.dataset_path
+            row_dict['execution_time'] = class_instance.duration
+            row_dict['accuracy'] = class_instance.accuracy
+            row_dict['precision'] = class_instance.prec
+            row_dict['recall'] = class_instance.recall
+            row_dict['f1'] = class_instance.f1_score
+            row_dict['heatmap'] = class_instance.heatmap_data
+
             row_dict['XGB'] = {}
-            for i, key in enumerate(XGB_keys):
-                row_dict['XGB'][key] = r[i + idx_offset]
-            idx_offset += len(XGB_keys) - 1 
-            print(row_dict) 
+            row_dict['XGB']['n_estimators'] = class_instance.xgb_estimators
+            row_dict['XGB']['max_depth'] = class_instance.xgb_max_depth
+            row_dict['XGB']['learning_rate'] = class_instance.xgb_learning_rate
+
             row_dict['DT_keys'] = {}
-            for i, key in enumerate(DT_keys):
-                row_dict['DT_keys'][key] = r[i + idx_offset]
-            idx_offset += len(DT_keys) - 1 
-            print(row_dict) 
-            # print(list(enumerate(RT_keys)))
+            row_dict['DT_keys']['max_depth'] = class_instance.dtree_max_depth
+            row_dict['DT_keys']['min_samples_split'] = class_instance.dtree_min_samples
+            row_dict['DT_keys']['splitter'] = class_instance.dtree_splitter
+
             row_dict['RT_keys'] = {}
-            for i, key in enumerate(RT_keys):
-                print(i, key)
-                row_dict['RT_keys'][key] = r[i + idx_offset]
-            idx_offset += len(RT_keys) - 1 
-            print(row_dict) 
+            row_dict['RT_keys']['n_estimators'] = class_instance.rtree_estimators
+            row_dict['RT_keys']['max_depth'] = class_instance.rtree_max_depth
+            row_dict['RT_keys']['min_samples_split'] = class_instance.rtree_min_samples
+
             row_dict['ET_keys'] = {}
-            for i, key in enumerate(ET_keys):
-                row_dict['ET_keys'][key] = r[i + idx_offset]
-            idx_offset += len(ET_keys) - 1 
-            print(row_dict) 
+            row_dict['ET_keys']['n_estimators'] = class_instance.etree_estimators
+            row_dict['ET_keys']['max_depth'] = class_instance.etree_max_depth
+            row_dict['ET_keys']['min_samples_split'] = class_instance.etree_min_samples
+    #         # print(list(enumerate(keys)))
+    #         for i, key in enumerate(keys):
+    #             row_dict[key] = r[i]
+    #         idx_offset += len(keys) - 1 
+    #         print(row_dict)  
+    #         row_dict['XGB'] = {}
+    #         for i, key in enumerate(XGB_keys):
+    #             row_dict['XGB'][key] = r[i + idx_offset]
+    #         idx_offset += len(XGB_keys) - 1 
+    #         print(row_dict) 
+    #         row_dict['DT_keys'] = {}
+    #         for i, key in enumerate(DT_keys):
+    #             row_dict['DT_keys'][key] = r[i + idx_offset]
+    #         idx_offset += len(DT_keys) - 1 
+    #         print(row_dict) 
+    #         # print(list(enumerate(RT_keys)))
+    #         row_dict['RT_keys'] = {}
+    #         for i, key in enumerate(RT_keys):
+    #             print(i, key)
+    #             row_dict['RT_keys'][key] = r[i + idx_offset]
+    #         idx_offset += len(RT_keys) - 1 
+    #         print(row_dict) 
+    #         row_dict['ET_keys'] = {}
+    #         for i, key in enumerate(ET_keys):
+    #             row_dict['ET_keys'][key] = r[i + idx_offset]
+    #         idx_offset += len(ET_keys) - 1  
             rows_dict["rows"].append(row_dict)
+            # 
+        print(rows_dict)
         session.close()
 
     json_rows = json.dumps(rows_dict)
@@ -142,7 +174,7 @@ def record(result, xgb_params, dtree_params, rtree_params, etree_params, dataset
                 record.append(model_params[param])
 
         now = datetime.now()
-        record.append(now.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        record.append(str(now.strftime("%Y-%m-%d %H:%M:%S.%f")))
         record.append(dataset_path)
         rec_str = str(record)[1:-1]
         rec_str = rec_str.replace("None", "NULL")
