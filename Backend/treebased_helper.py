@@ -14,18 +14,18 @@ default_params = {
       "learning_rate": 0.3
     },
     "DTree": {
-      "max_depth": None,
+      "max_depth": 6,
       "min_samples_split": 2,
       "splitter": "best"
     },
     "RTree": {
       "n_estimators": 100, 
-      "max_depth": None,
+      "max_depth": 6,
       "min_samples_split": 2
     },
     "ETree": { 
       "n_estimators": 100,
-      "max_depth": None,
+      "max_depth": 6,
       "min_samples_split": 2
     }
 }
