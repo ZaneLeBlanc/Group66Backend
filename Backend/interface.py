@@ -68,9 +68,11 @@ def alg4():
 def alg5():
     params = request.json.get('code')
     params = json.loads(params)
-    result_json = treebased_helper.run(params)
+    result_json, cm_json = treebased_helper.run(params)
     print(result_json)
-    return jsonify(result_json)
+    print(cm_json)
+    print(jsonify(cm_json))
+    return jsonify(result_json), jsonify(cm_json)
     # pass
 
 @app.route('/retrieveTree', methods=['GET'])

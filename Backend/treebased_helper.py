@@ -6,6 +6,7 @@ import sqlalchemy
 from db_session import Session, engine
 from data_models import TreeBased, LCCDE
 from sqlalchemy import text, select, desc
+import numpy as np
 
 default_params = {
     "XGB": {
@@ -48,18 +49,19 @@ def run(json_req):
     dataset = path + dataset_path
 
     #run model
-    result = treebased.run_model(dataset, xgb_params, dtree_params, rtree_params, etree_params)
+    result, cm = treebased.run_model(dataset, xgb_params, dtree_params, rtree_params, etree_params)
     # print(result)
 
     #create json
     result_json = parse_to_json(result)
+    cm_json = ndarray_to_dict(cm)
     # print('results')
     # print(result_json)
 
     #store results
     record(result, xgb_params, dtree_params, rtree_params, etree_params, dataset_path)
     
-    return result_json
+    return result_json, cm_json
 
 #fill the json will default parameters if they empty
 def default_fill(json_req, default):
@@ -203,6 +205,22 @@ def parse_to_json(result):
     
     json_result = json.dumps(json_result)
     return json_result
+
+import numpy as np
+
+def ndarray_to_dict(arr):
+    if not isinstance(arr, np.ndarray) or arr.ndim != 2:
+        raise ValueError("Input must be a 2D numpy array.")
+    
+    rows, cols = arr.shape
+    result_dict = {}
+    
+    for i in range(rows):
+        for j in range(cols):
+            key = f"{i}{j}"
+            result_dict[key] = str(arr[i, j])  # Convert the value to string
+    
+    return result_dict
 
 
 

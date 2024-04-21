@@ -504,7 +504,7 @@ def run_model(data_path, xgb_params, dtree_params, rtree_params, etree_params):
     end_time = time.time()
     run_model_time = end_time - start_time
 
-    return (str(run_model_time), accuracy, precision, recall, f1, str(cm.tolist()))
+    return (str(run_model_time), accuracy, precision, recall, f1, str(cm.tolist())), cm
 
 #run_model()
 
