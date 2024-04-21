@@ -59,7 +59,7 @@ def get_runs():
 
     c.execute("SELECT * FROM mth")
     rows = c.fetchall()
-
+    print(rows)
     c.close()
     connection.close()
     #parse json
@@ -70,8 +70,9 @@ def get_runs():
         row_dict = {}
         for i, key in enumerate(keys):
             row_dict[key] = r[i]
+        rows_dict["rows"].append(row_dict)
 
-    #print(rows_dict)
+    print(rows_dict)
     json_rows = json.dumps(rows_dict)
     return json_rows
  
